@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getCurrentMember, disconnectMember, NOT_AUTHORIZED } from "../lib/trelloApi.js";
 import { isAuthorized } from "../lib/auth.js";
-import { SpinnerIcon, CheckIcon, LinkCanvasIcon } from "../lib/icons.jsx";
+import { SpinnerIcon, CheckIcon, ProcessIcon } from "../lib/icons.jsx";
 import "./settings.css";
 
 export default function SettingsPopup({ t }) {
@@ -87,7 +87,7 @@ export default function SettingsPopup({ t }) {
     return (
       <div className="settings-container" style={{ textAlign: "center" }}>
         <div style={{ margin: "16px auto", width: 44, height: 44, borderRadius: 12, background: "rgba(6, 182, 212, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primary-cyan)" }}>
-          <LinkCanvasIcon width={24} height={24} />
+          <ProcessIcon width={24} height={24} />
         </div>
         <h3 className="settings-title">Not Connected</h3>
         <p className="settings-subtitle" style={{ margin: "6px 0 18px" }}>

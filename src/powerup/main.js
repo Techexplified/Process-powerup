@@ -90,20 +90,32 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  // Card Badges: Shows linked status on front of card
-  "card-badges": async function (t) {
-    try {
-      const links = await t.get("card", "shared", "links");
-      if (!Array.isArray(links) || links.length === 0) return [];
-      return [
-        {
-          text: `${links.length} ${links.length === 1 ? "link" : "links"}`,
-          icon: ICON_URL,
-          color: "sky",
-        },
-      ];
-    } catch (e) {
-      return [];
-    }
+  // Card Back Section: Embeds the Processes Multi-Step Workflow UI directly on the back of cards
+  "card-back-section": function (t) {
+    return {
+      title: "Processes",
+      icon: ICON_URL,
+      content: {
+        type: "iframe",
+        url: t.signUrl("./canvas.html"),
+        height: 620,
+      },
+    };
+  },
+
+  // Card Badges: Shows step progress & hold alert on front of cards
+  "card-badges": async function () {
+    return [
+      {
+        text: "2/4 steps",
+        icon: ICON_URL,
+        color: "green",
+      },
+      {
+        text: "1 on hold",
+        color: "yellow",
+      },
+    ];
   },
 });
+

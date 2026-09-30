@@ -8,7 +8,7 @@ import {
 import {
   CheckIcon,
   SpinnerIcon,
-  LinkCanvasIcon,
+  ProcessIcon,
 } from "../lib/icons.jsx";
 import "./auth.css";
 
@@ -117,7 +117,7 @@ export default function AuthPopup({ t }) {
     <div className="auth-popup-container">
       <div className="auth-header">
         <div className="auth-icon-badge">
-          <LinkCanvasIcon width={22} height={22} />
+          <ProcessIcon width={22} height={22} />
         </div>
         <div>
           <h3 className="auth-title">Connect {APP_NAME}</h3>

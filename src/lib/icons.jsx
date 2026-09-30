@@ -1,6 +1,6 @@
 import React from "react";
 
-export function LinkCanvasIcon({ width = 24, height = 24, className = "" }) {
+export function ProcessIcon({ width = 24, height = 24, className = "" }) {
   return (
     <svg
       width={width}
@@ -13,15 +13,14 @@ export function LinkCanvasIcon({ width = 24, height = 24, className = "" }) {
       strokeLinejoin="round"
       className={className}
     >
-      <circle cx="6" cy="6" r="3" />
-      <circle cx="18" cy="18" r="3" />
-      <path d="M8.5 8.5l7 7" />
-      <circle cx="18" cy="6" r="3" />
-      <path d="M15.5 8.5l-7 7" strokeDasharray="2 2" />
-      <circle cx="6" cy="18" r="3" />
+      <rect x="3" y="3" width="9" height="7" rx="2" />
+      <rect x="12" y="14" width="9" height="7" rx="2" />
+      <path d="M7.5 10v4a2 2 0 0 0 2 2H12" />
     </svg>
   );
 }
+
+export const LinkCanvasIcon = ProcessIcon;
 
 export function ShieldCheckIcon({ width = 18, height = 18, className = "" }) {
   return (

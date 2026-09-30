@@ -10,7 +10,8 @@
     "board-buttons",
     "card-buttons",
     "card-badges",
-    "card-detail-badges"
+    "card-detail-badges",
+    "card-back-section"
   ],
   "icon": {
     "url": "./icons/icon.svg"
