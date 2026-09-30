@@ -3,7 +3,7 @@ import "./canvas.css";
 import { ProcessIcon } from "../lib/icons.jsx";
 
 export default function CanvasApp({ t }) {
-  // Hardcoded initial multi-step workflow state matching the screenshots
+  // State for hardcoded workflow
   const [processEnabled, setProcessEnabled] = useState(true);
   const [showAddStep, setShowAddStep] = useState(false);
   const [newStepName, setNewStepName] = useState("");
@@ -155,102 +155,109 @@ export default function CanvasApp({ t }) {
   }
 
   return (
-    <div className="proc-app-container">
-      {/* Top Header */}
-      <div className="proc-header">
-        <div className="proc-header-left">
-          <div className="proc-brand-badge">
-            <ProcessIcon width={20} height={20} />
-          </div>
-          <div>
-            <div className="proc-title-row">
-              <h1 className="proc-title">PROCESSES</h1>
-              <span className="proc-powerup-tag">Power-Up</span>
+    <div className="proc-viewport-layout">
+      {/* 1. FIXED TOP HEADER & SUMMARY */}
+      <header className="proc-fixed-top">
+        {/* Brand Bar */}
+        <div className="proc-header-bar">
+          <div className="proc-header-left">
+            <div className="proc-brand-badge">
+              <ProcessIcon width={19} height={19} />
             </div>
-            <p className="proc-subtitle">
-              Manage multi-step workflows, step assignees, hold reasons, and dates.
-            </p>
+            <div>
+              <div className="proc-title-row">
+                <h1 className="proc-title">PROCESSES</h1>
+                <span className="proc-powerup-tag">Power-Up</span>
+              </div>
+              <p className="proc-subtitle">
+                Manage multi-step workflows, step assignees, hold reasons, and dates.
+              </p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setProcessEnabled(!processEnabled)}
+            className={`proc-btn-enable ${processEnabled ? "active" : ""}`}
+          >
+            {processEnabled ? "✓ Process Active" : "+ Enable Process / Task"}
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setProcessEnabled(!processEnabled)}
-          className={`proc-btn-enable ${processEnabled ? "active" : ""}`}
-        >
-          {processEnabled ? "✓ Process Active" : "+ Enable Process / Task"}
-        </button>
-      </div>
-
-      {processEnabled && (
-        <div className="proc-main-card">
-          {/* Process Workflow Banner */}
-          <div className="proc-banner">
-            <div className="proc-banner-left">
-              <div className="proc-toggle-circle">
-                <div className="proc-toggle-inner-dot"></div>
-              </div>
-              <div>
-                <div className="proc-banner-title-row">
-                  <h2 className="proc-banner-title">Deployment & Verification Process</h2>
-                  <span className="proc-status-active">Active</span>
+        {processEnabled && (
+          <div className="proc-summary-card">
+            {/* Process Workflow Banner */}
+            <div className="proc-banner">
+              <div className="proc-banner-left">
+                <div className="proc-toggle-circle">
+                  <div className="proc-toggle-inner-dot"></div>
                 </div>
-                <p className="proc-banner-desc">
-                  Mandatory verification workflow before triggering production deployment gate.
-                </p>
+                <div className="proc-banner-text-group">
+                  <div className="proc-banner-title-row">
+                    <h2 className="proc-banner-title">Deployment & Verification Process</h2>
+                    <span className="proc-status-active">Active</span>
+                  </div>
+                  <p className="proc-banner-desc">
+                    Mandatory verification workflow before triggering production deployment gate.
+                  </p>
+                </div>
+              </div>
+
+              <div className="proc-banner-right">
+                <div className="proc-date-pill">
+                  <span className="proc-calendar-icon">📅</span>
+                  <span>2026-10-10</span>
+                </div>
+                <button type="button" className="proc-icon-btn proc-trash-btn" title="Delete Process">
+                  <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
               </div>
             </div>
 
-            <div className="proc-banner-right">
-              <div className="proc-date-pill">
-                <span className="proc-calendar-icon">📅</span>
-                <span>2026-10-10</span>
+            {/* Progress Label & Status Chips */}
+            <div className="proc-progress-summary">
+              <div className="proc-progress-label">
+                <strong>Progress: {progressPercent}%</strong>
+                <span className="proc-progress-sub">
+                  {doneCount}/{totalSteps} steps completed
+                </span>
               </div>
-              <button type="button" className="proc-icon-btn proc-trash-btn" title="Delete Process">
-                <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                </svg>
-              </button>
-            </div>
-          </div>
 
-          {/* Progress Summary Section */}
-          <div className="proc-progress-summary">
-            <div className="proc-progress-label">
-              <strong>Progress: {progressPercent}%</strong>
-              <span className="proc-progress-sub">
-                {doneCount}/{totalSteps} steps completed
-              </span>
+              <div className="proc-status-chips">
+                <span className="proc-chip chip-hold">
+                  <span className="dot dot-amber"></span> {heldCount} on hold
+                </span>
+                <span className="proc-chip chip-pending">
+                  <span className="dot dot-pink"></span> {pendingCount} pending
+                </span>
+                <span className="proc-chip chip-done">
+                  <span className="dot dot-emerald"></span> {doneCount} done
+                </span>
+              </div>
             </div>
 
-            <div className="proc-status-chips">
-              <span className="proc-chip chip-hold">
-                <span className="dot dot-amber"></span> {heldCount} on hold
-              </span>
-              <span className="proc-chip chip-pending">
-                <span className="dot dot-pink"></span> {pendingCount} pending
-              </span>
-              <span className="proc-chip chip-done">
-                <span className="dot dot-emerald"></span> {doneCount} done
-              </span>
+            {/* Segmented Dual-tone Progress Bar */}
+            <div className="proc-progress-bar-track">
+              <div
+                className="proc-bar-done"
+                style={{ width: `${progressPercent}%` }}
+                title={`${doneCount} Done`}
+              ></div>
+              <div
+                className="proc-bar-held"
+                style={{ width: `${heldPercent}%` }}
+                title={`${heldCount} On Hold`}
+              ></div>
             </div>
           </div>
+        )}
+      </header>
 
-          {/* Segmented Dual-tone Progress Bar */}
-          <div className="proc-progress-bar-track">
-            <div
-              className="proc-bar-done"
-              style={{ width: `${progressPercent}%` }}
-              title={`${doneCount} Done`}
-            ></div>
-            <div
-              className="proc-bar-held"
-              style={{ width: `${heldPercent}%` }}
-              title={`${heldCount} On Hold`}
-            ></div>
-          </div>
-
-          {/* Step Items List */}
+      {/* 2. SCROLLABLE MIDDLE STEPS LIST */}
+      {processEnabled && (
+        <main className="proc-scrollable-body custom-slim-scrollbar">
           <div className="proc-steps-list">
             {steps.map((step, index) => {
               const isDone = step.status === "done";
@@ -298,7 +305,7 @@ export default function CanvasApp({ t }) {
                       <div className="proc-step-meta-row">
                         {step.dueDate && (
                           <span className="proc-meta-pill date-pill">
-                            <span style={{ fontSize: "11px" }}>📅</span> {step.dueDate}
+                            <span>📅</span> {step.dueDate}
                           </span>
                         )}
                         {step.assignee && (
@@ -326,14 +333,14 @@ export default function CanvasApp({ t }) {
                         className="proc-icon-btn proc-trash-btn"
                         title="Delete Step"
                       >
-                        <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                         </svg>
                       </button>
                     </div>
                   </div>
 
-                  {/* Expanded Hold Reason Box (for Held Steps) */}
+                  {/* Expanded Hold Reason Box */}
                   {isHeld && (
                     <div className="proc-hold-details-box">
                       <div className="proc-hold-top">
@@ -369,7 +376,7 @@ export default function CanvasApp({ t }) {
                         </button>
                       </div>
 
-                      {/* Additional Hold Reasons List if multiple */}
+                      {/* Multi-Hold List */}
                       {step.holdReasonsList && step.holdReasonsList.length > 1 && (
                         <div className="proc-multi-hold-list">
                           <div className="proc-multi-hold-header">
@@ -397,17 +404,8 @@ export default function CanvasApp({ t }) {
             })}
           </div>
 
-          {/* Add Step Action Button */}
-          {!showAddStep ? (
-            <button
-              type="button"
-              onClick={() => setShowAddStep(true)}
-              className="proc-btn-add-steps"
-            >
-              + Add Steps
-            </button>
-          ) : (
-            /* Add Step Form */
+          {/* Inline Add Step Form if opened */}
+          {showAddStep && (
             <form onSubmit={handleAddStepSubmit} className="proc-add-step-form">
               <div className="proc-form-header">
                 <h3 className="proc-form-title">Add Step</h3>
@@ -482,7 +480,26 @@ export default function CanvasApp({ t }) {
               </div>
             </form>
           )}
-        </div>
+        </main>
+      )}
+
+      {/* 3. ALWAYS VISIBLE FIXED BOTTOM FOOTER */}
+      {processEnabled && (
+        <footer className="proc-fixed-bottom">
+          <button
+            type="button"
+            onClick={() => setShowAddStep(!showAddStep)}
+            className="proc-btn-add-steps"
+          >
+            {showAddStep ? "✕ Close Form" : "+ Add Steps"}
+          </button>
+
+          <div className="proc-footer-status">
+            <span>{steps.length} Steps Total</span>
+            <span className="proc-footer-dot">•</span>
+            <span style={{ color: "#34d399" }}>{doneCount} Completed</span>
+          </div>
+        </footer>
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 /* =========================================================================
-   PROCESSES POWER-UP - Multi-Step Workflow UI Stylesheet
+   PROCESSES POWER-UP - Professional Fixed-Layout Stylesheet
    ========================================================================= */
 
 :root {
@@ -8,7 +8,6 @@
   --proc-card-subtle: #1c2128;
   --proc-border: rgba(255, 255, 255, 0.08);
   --proc-border-subtle: rgba(255, 255, 255, 0.05);
-  --proc-border-focus: #38bdf8;
   
   --proc-text-main: #f0f6fc;
   --proc-text-muted: #8b949e;
@@ -37,45 +36,85 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
-  background: #0f1318;
+  width: 100%;
+  height: 100%;
+  background: var(--proc-bg);
   color: var(--proc-text-main);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow: hidden;
 }
 
-.proc-app-container {
-  width: 100%;
-  max-width: 840px;
-  margin: 0 auto;
-  padding: 16px 16px 32px;
+#root {
+  height: 100%;
 }
 
 /* =========================================================================
-   Top Header
+   Custom Ultra-Slim Professional Scrollbar
    ========================================================================= */
-.proc-header {
+.custom-slim-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-slim-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-slim-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+.custom-slim-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* =========================================================================
+   3-Layer Fixed Viewport Layout
+   ========================================================================= */
+.proc-viewport-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  background: var(--proc-bg);
+  overflow: hidden;
+}
+
+/* 1. FIXED TOP HEADER */
+.proc-fixed-top {
+  flex-shrink: 0;
+  background: var(--proc-card-bg);
+  border-bottom: 1px solid var(--proc-border);
+  padding: 14px 20px 12px;
+  z-index: 10;
+}
+
+.proc-header-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--proc-border);
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .proc-header-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .proc-brand-badge {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   background: #1e40af;
   border: 1px solid rgba(147, 197, 253, 0.3);
   display: flex;
@@ -88,31 +127,30 @@ body {
 .proc-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .proc-title {
   margin: 0;
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: #ffffff;
 }
 
 .proc-powerup-tag {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 6px;
+  padding: 1px 7px;
+  border-radius: 4px;
   background: #2e3856;
   color: #a5b4fc;
   border: 1px solid rgba(165, 180, 252, 0.25);
-  letter-spacing: 0.3px;
 }
 
 .proc-subtitle {
-  margin: 4px 0 0;
-  font-size: 13px;
+  margin: 2px 0 0;
+  font-size: 12px;
   color: var(--proc-text-muted);
 }
 
@@ -120,18 +158,17 @@ body {
   background: var(--proc-blue);
   color: #ffffff;
   border: none;
-  border-radius: 8px;
-  padding: 9px 16px;
-  font-size: 13px;
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
   white-space: nowrap;
+  transition: all 0.15s ease;
 }
 
 .proc-btn-enable:hover {
   background: var(--proc-blue-hover);
-  transform: translateY(-1px);
 }
 
 .proc-btn-enable.active {
@@ -140,37 +177,30 @@ body {
   border: 1px solid rgba(147, 197, 253, 0.3);
 }
 
-/* =========================================================================
-   Main Process Box
-   ========================================================================= */
-.proc-main-card {
-  background: var(--proc-card-bg);
-  border: 1px solid var(--proc-border);
-  border-radius: 14px;
-  padding: 22px;
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5);
+/* Summary Box */
+.proc-summary-card {
+  padding-top: 4px;
 }
 
-/* Process Banner */
 .proc-banner {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 22px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .proc-banner-left {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 10px;
 }
 
 .proc-toggle-circle {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: 2.5px solid var(--proc-emerald);
+  border: 2px solid var(--proc-emerald);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -179,60 +209,62 @@ body {
 }
 
 .proc-toggle-inner-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--proc-emerald);
+}
+
+.proc-banner-text-group {
+  flex: 1;
 }
 
 .proc-banner-title-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .proc-banner-title {
   margin: 0;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   color: #ffffff;
 }
 
 .proc-status-active {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
   background: var(--proc-emerald-bg);
   color: var(--proc-emerald-text);
   border: 1px solid rgba(52, 211, 153, 0.3);
 }
 
 .proc-banner-desc {
-  margin: 5px 0 0;
-  font-size: 13px;
+  margin: 3px 0 0;
+  font-size: 12px;
   color: var(--proc-text-muted);
-  line-height: 1.45;
 }
 
 .proc-banner-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
 .proc-date-pill {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 8px;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
   background: #1e293b;
   border: 1px solid #334155;
   color: #60a5fa;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -241,12 +273,11 @@ body {
   border: none;
   color: var(--proc-text-dim);
   cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
+  padding: 4px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
 }
 
 .proc-icon-btn:hover {
@@ -254,44 +285,35 @@ body {
   background: rgba(239, 68, 68, 0.12);
 }
 
-/* =========================================================================
-   Progress Section
-   ========================================================================= */
+/* Progress summary */
 .proc-progress-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-}
-
-.proc-progress-label {
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 12.5px;
 }
 
 .proc-progress-sub {
   color: var(--proc-text-muted);
-  font-size: 13px;
+  font-size: 12px;
+  margin-left: 6px;
 }
 
 .proc-status-chips {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .proc-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -314,65 +336,54 @@ body {
 }
 
 .dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
 }
 
-.dot-amber {
-  background: var(--proc-amber);
-}
+.dot-amber { background: var(--proc-amber); }
+.dot-pink { background: var(--proc-pink); }
+.dot-emerald { background: var(--proc-emerald); }
+.dot-gray { background: var(--proc-text-dim); }
 
-.dot-pink {
-  background: var(--proc-pink);
-}
-
-.dot-emerald {
-  background: var(--proc-emerald);
-}
-
-.dot-gray {
-  background: var(--proc-text-dim);
-}
-
-/* Progress Bar */
 .proc-progress-bar-track {
   width: 100%;
-  height: 8px;
+  height: 6px;
   border-radius: 9999px;
   background: #21262d;
   overflow: hidden;
   display: flex;
-  margin-bottom: 24px;
 }
 
 .proc-bar-done {
   background: var(--proc-emerald);
   height: 100%;
-  transition: width 0.3s ease;
 }
 
 .proc-bar-held {
   background: var(--proc-amber);
   height: 100%;
-  transition: width 0.3s ease;
 }
 
-/* =========================================================================
-   Steps List
-   ========================================================================= */
+/* 2. SCROLLABLE MIDDLE STEPS LIST */
+.proc-scrollable-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  background: var(--proc-bg);
+}
+
 .proc-steps-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 10px;
 }
 
 .proc-step-item {
-  background: var(--proc-card-subtle);
+  background: var(--proc-card-bg);
   border: 1px solid var(--proc-border);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 10px;
+  padding: 13px 15px;
   transition: all 0.15s ease;
 }
 
@@ -381,14 +392,14 @@ body {
 }
 
 .proc-step-item.step-is-held {
-  border-color: rgba(245, 158, 11, 0.4);
-  background: #18191d;
+  border-color: rgba(245, 158, 11, 0.35);
+  background: #14171c;
 }
 
 .proc-step-main-row {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 12px;
 }
 
 .proc-indicator-col {
@@ -397,17 +408,16 @@ body {
 
 .proc-indicator-dot {
   display: block;
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 
-/* Checkbox */
 .proc-checkbox {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-  border: 2px solid #484f58;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.8px solid #484f58;
   background: #0d1117;
   display: flex;
   align-items: center;
@@ -440,7 +450,7 @@ body {
 }
 
 .proc-step-title {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
   color: #f0f6fc;
   line-height: 1.4;
@@ -452,10 +462,10 @@ body {
 }
 
 .proc-step-tag {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 1px 7px;
-  border-radius: 5px;
+  padding: 1px 6px;
+  border-radius: 4px;
 }
 
 .tag-done {
@@ -471,8 +481,8 @@ body {
 }
 
 .proc-step-desc {
-  margin: 4px 0 8px;
-  font-size: 12.5px;
+  margin: 3px 0 6px;
+  font-size: 12px;
   color: var(--proc-text-muted);
   line-height: 1.4;
 }
@@ -480,15 +490,15 @@ body {
 .proc-step-meta-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 6px;
+  margin-top: 4px;
 }
 
 .proc-meta-pill {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 2px 7px;
+  border-radius: 5px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -501,13 +511,13 @@ body {
 }
 
 .assignee-pill {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   padding: 0;
 }
@@ -530,11 +540,10 @@ body {
   border: 1px solid rgba(192, 132, 252, 0.4);
 }
 
-/* Actions */
 .proc-step-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -542,20 +551,14 @@ body {
   background: #21262d;
   color: var(--proc-text-muted);
   border: 1px solid var(--proc-border);
-  border-radius: 6px;
-  padding: 5px 12px;
-  font-size: 12px;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: all 0.15s ease;
-}
-
-.proc-btn-hold:hover {
-  background: #30363d;
-  color: #f0f6fc;
+  gap: 5px;
 }
 
 .proc-btn-hold.is-held {
@@ -565,16 +568,14 @@ body {
 }
 
 .hold-icon {
-  font-size: 11px;
+  font-size: 10px;
 }
 
-/* =========================================================================
-   Hold Reason Details Box
-   ========================================================================= */
+/* Hold details */
 .proc-hold-details-box {
-  margin-top: 14px;
-  padding: 14px 16px;
-  border-radius: 10px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
   background: var(--proc-amber-card-bg);
   border: 1px solid var(--proc-amber-border);
 }
@@ -583,35 +584,30 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .proc-hold-reason-line {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
-  line-height: 1.45;
+  gap: 7px;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .proc-hold-badge {
   background: #d97706;
   color: #000000;
   font-weight: 800;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-size: 9.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  letter-spacing: 0.5px;
+  gap: 3px;
   flex-shrink: 0;
   margin-top: 1px;
-}
-
-.hold-dot {
-  font-size: 8px;
 }
 
 .proc-hold-text {
@@ -623,26 +619,20 @@ body {
   background: transparent;
   color: var(--proc-amber-text);
   border: 1px solid var(--proc-amber-border);
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 11.5px;
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
-}
-
-.proc-btn-resume:hover {
-  background: rgba(245, 158, 11, 0.15);
 }
 
 .proc-hold-bottom {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  flex-wrap: wrap;
-  padding-top: 8px;
+  gap: 8px;
+  font-size: 11.5px;
+  padding-top: 6px;
   border-top: 1px solid rgba(245, 158, 11, 0.15);
 }
 
@@ -653,23 +643,23 @@ body {
 .proc-hold-person-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: #4c0519;
   border: 1px solid #831843;
   color: #fda4af;
-  padding: 2px 8px;
-  border-radius: 6px;
+  padding: 1px 7px;
+  border-radius: 5px;
   font-weight: 600;
-  font-size: 11.5px;
+  font-size: 11px;
 }
 
 .hold-person-avatar {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: #e11d48;
   color: #ffffff;
-  font-size: 9px;
+  font-size: 8.5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -679,17 +669,17 @@ body {
   background: transparent;
   border: none;
   color: var(--proc-amber-text);
-  font-size: 12px;
+  font-size: 11.5px;
   cursor: pointer;
   text-decoration: underline;
   padding: 0;
 }
 
 .proc-multi-hold-list {
-  margin-top: 12px;
-  padding-top: 10px;
+  margin-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid rgba(245, 158, 11, 0.15);
-  font-size: 12px;
+  font-size: 11.5px;
 }
 
 .proc-multi-hold-header {
@@ -698,68 +688,49 @@ body {
   align-items: center;
   color: var(--proc-amber-text);
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .proc-add-more-hold-link {
   background: transparent;
   border: none;
   color: #60a5fa;
-  font-size: 11.5px;
+  font-size: 11px;
   cursor: pointer;
 }
 
 .proc-sub-hold-item {
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 8px 10px;
-  border-radius: 6px;
-  margin-bottom: 6px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  margin-bottom: 5px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: #e2e8f0;
 }
 
-/* =========================================================================
-   Add Steps Button & Form
-   ========================================================================= */
-.proc-btn-add-steps {
-  background: var(--proc-blue);
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 18px;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  margin-top: 8px;
-}
-
-.proc-btn-add-steps:hover {
-  background: var(--proc-blue-hover);
-  transform: translateY(-1px);
-}
-
+/* Add Step Form */
 .proc-add-step-form {
-  background: var(--proc-card-subtle);
-  border: 1px solid var(--proc-border);
-  border-radius: 12px;
-  padding: 18px;
-  margin-top: 12px;
+  background: var(--proc-card-bg);
+  border: 1px solid var(--proc-blue-light);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 14px;
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.6);
 }
 
 .proc-form-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .proc-form-title {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: #ffffff;
 }
@@ -768,25 +739,25 @@ body {
   background: transparent;
   border: none;
   color: var(--proc-text-dim);
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
 }
 
 .proc-form-group {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .proc-form-row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .proc-form-label {
   display: block;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--proc-text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .proc-input,
@@ -795,12 +766,11 @@ body {
   width: 100%;
   background: #0d1117;
   border: 1px solid var(--proc-border);
-  border-radius: 6px;
-  padding: 8px 12px;
+  border-radius: 5px;
+  padding: 7px 10px;
   color: #f0f6fc;
-  font-size: 13px;
+  font-size: 12.5px;
   outline: none;
-  transition: border-color 0.15s ease;
   font-family: inherit;
 }
 
@@ -812,17 +782,17 @@ body {
 
 .proc-form-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .proc-btn-submit {
   background: var(--proc-blue);
   color: #ffffff;
   border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 13px;
+  border-radius: 5px;
+  padding: 7px 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
@@ -831,8 +801,51 @@ body {
   background: transparent;
   color: var(--proc-text-muted);
   border: 1px solid var(--proc-border);
-  border-radius: 6px;
-  padding: 8px 14px;
-  font-size: 13px;
+  border-radius: 5px;
+  padding: 7px 12px;
+  font-size: 12px;
   cursor: pointer;
+}
+
+/* =========================================================================
+   3. ALWAYS VISIBLE FIXED BOTTOM FOOTER
+   ========================================================================= */
+.proc-fixed-bottom {
+  flex-shrink: 0;
+  background: var(--proc-card-bg);
+  border-top: 1px solid var(--proc-border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  z-index: 10;
+}
+
+.proc-btn-add-steps {
+  background: var(--proc-blue);
+  color: #ffffff;
+  border: none;
+  border-radius: 7px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.proc-btn-add-steps:hover {
+  background: var(--proc-blue-hover);
+}
+
+.proc-footer-status {
+  font-size: 12px;
+  color: var(--proc-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.proc-footer-dot {
+  color: var(--proc-text-dim);
 }

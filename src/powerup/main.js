@@ -50,10 +50,10 @@ TrelloPowerUp.initialize({
             });
           }
 
-          // User is already authorized -> open centered modal dialog
+          // User is already authorized -> open centered modal dialog with sleek dark header
           return t.modal({
             url: "./canvas.html",
-            accentColor: "#1d4ed8",
+            accentColor: "#161b22",
             height: 680,
             fullscreen: false,
             title: "Process Power-Up",
@@ -79,10 +79,10 @@ TrelloPowerUp.initialize({
             });
           }
 
-          // User is authorized -> open centered modal dialog
+          // User is authorized -> open centered modal dialog with sleek dark header
           return t.modal({
             url: "./canvas.html",
-            accentColor: "#1d4ed8",
+            accentColor: "#161b22",
             height: 680,
             fullscreen: false,
             title: "Process Power-Up",
