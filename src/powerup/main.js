@@ -50,11 +50,12 @@ TrelloPowerUp.initialize({
             });
           }
 
-          // User is already authorized -> directly open the power-up canvas widescreen modal
+          // User is already authorized -> open centered modal dialog
           return t.modal({
             url: "./canvas.html",
-            accentColor: "#181d22",
-            fullscreen: true,
+            accentColor: "#1d4ed8",
+            height: 680,
+            fullscreen: false,
             title: "Process Power-Up",
           });
         },
@@ -78,11 +79,12 @@ TrelloPowerUp.initialize({
             });
           }
 
-          // User is authorized -> directly open the power-up canvas widescreen modal
+          // User is authorized -> open centered modal dialog
           return t.modal({
             url: "./canvas.html",
-            accentColor: "#181d22",
-            fullscreen: true,
+            accentColor: "#1d4ed8",
+            height: 680,
+            fullscreen: false,
             title: "Process Power-Up",
           });
         },
