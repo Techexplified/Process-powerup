@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./canvas.css";
 import { ProcessIcon } from "../lib/icons.jsx";
 
@@ -9,6 +9,12 @@ export default function CanvasApp({ t }) {
   const [newStepDesc, setNewStepDesc] = useState("");
   const [newStepDate, setNewStepDate] = useState("2026-10-15");
   const [newStepAssignee, setNewStepAssignee] = useState("SC");
+
+  useEffect(() => {
+    if (t && typeof t.sizeTo === "function") {
+      t.sizeTo("#root").catch(() => {});
+    }
+  }, [t, showAddStep, filter]);
 
   const [steps, setSteps] = useState([
     {
