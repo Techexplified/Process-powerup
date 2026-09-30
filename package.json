@@ -1,8 +1,8 @@
 {
-  "name": "link-canvas-trello-powerup",
+  "name": "process-trello-powerup",
   "private": true,
   "version": "1.0.0",
-  "description": "Link Canvas Trello Power-Up - Visual card maps, links & connection canvas",
+  "description": "Process Power-Up for Trello - Visual process mapping, step links & workflow canvas",
   "type": "module",
   "scripts": {
     "dev": "vite",

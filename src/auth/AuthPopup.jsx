@@ -84,7 +84,7 @@ export default function AuthPopup({ t }) {
         url: "./canvas.html",
         accentColor: "#181d22",
         fullscreen: true,
-        title: "Link Canvas",
+        title: "Process Power-Up",
       });
     }
     if (t && typeof t.closePopup === "function") {
@@ -100,14 +100,14 @@ export default function AuthPopup({ t }) {
         </div>
         <h3 className="auth-title">Connected to {APP_NAME}</h3>
         <p className="auth-subtitle" style={{ marginBottom: "18px", lineHeight: "1.45" }}>
-          Your Trello account is connected. You can now build, link, and visualize cards across your board!
+          Your Trello account is connected. You can now build, link, and visualize process workflows across your board!
         </p>
         <button
           type="button"
           onClick={handleOpenCanvas}
           className="auth-btn-primary"
         >
-          Open Link Canvas
+          Open Process Canvas
         </button>
       </div>
     );
@@ -126,21 +126,21 @@ export default function AuthPopup({ t }) {
       </div>
 
       <p className="auth-body-text">
-        Connect your Trello account so {APP_NAME} can securely manage visual canvas nodes, card links, and board connections.
+        Connect your Trello account so {APP_NAME} can securely manage visual process maps, step links, and workflow connections.
       </p>
 
       <div className="auth-features-list">
         <div className="auth-feature-item">
           <span className="auth-feature-dot"></span>
-          <span>Visualize and link cards on interactive canvas</span>
+          <span>Map end-to-end workflows and step connections</span>
         </div>
         <div className="auth-feature-item">
           <span className="auth-feature-dot"></span>
-          <span>Display relationship badges & connections</span>
+          <span>Display relationship badges & live dependencies</span>
         </div>
         <div className="auth-feature-item">
           <span className="auth-feature-dot"></span>
-          <span>Member-scoped private token storage</span>
+          <span>Secure member-scoped private token storage</span>
         </div>
       </div>
 

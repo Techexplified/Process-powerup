@@ -1,4 +1,4 @@
-// Single source of truth for member's Trello authentication token for Link Canvas.
+// Single source of truth for member's Trello authentication token for Process Power-Up.
 //
 // Stored in Trello's member-scoped private plugin storage:
 // `t.set('member', 'private', 'token', token)`.
@@ -6,10 +6,10 @@
 // by any other board member. It is never stored in external servers.
 
 export const APP_KEY = import.meta.env.VITE_TRELLO_APP_KEY;
-export const APP_NAME = "Link Canvas";
+export const APP_NAME = "Process Power-Up";
 
 // Shared message tag validated by authorized.js and AuthPopup.jsx
-export const AUTH_MESSAGE_SOURCE = "link-canvas-auth";
+export const AUTH_MESSAGE_SOURCE = "process-powerup-auth";
 
 const TOKEN_KEY = "token";
 

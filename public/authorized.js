@@ -31,11 +31,11 @@
     window.history.replaceState(null, "", window.location.pathname);
   }
 
-  // Post the token securely to the opener window (Link Canvas auth popup)
+  // Post the token securely to the opener window (Process Power-Up auth popup)
   if (window.opener) {
     window.opener.postMessage(
       {
-        source: "link-canvas-auth",
+        source: "process-powerup-auth",
         token: token,
       },
       window.location.origin
@@ -43,7 +43,7 @@
   }
 
   if (titleEl) titleEl.textContent = "Connection Successful!";
-  if (descEl) descEl.textContent = "Link Canvas is now authorized with Trello. Closing window…";
+  if (descEl) descEl.textContent = "Process Power-Up is now authorized with Trello. Closing window…";
   if (spinnerContainer) spinnerContainer.style.display = "none";
 
   // Attempt to close popup window automatically

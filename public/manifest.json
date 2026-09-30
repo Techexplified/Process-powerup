@@ -1,6 +1,6 @@
 {
-  "name": "Lean Canvas",
-  "details": "Dynamic 9-box Lean Canvas generator & studio for Trello boards",
+  "name": "Process Power-Up",
+  "details": "Visual process mapping, step workflows, card connections & dynamic canvas studio for Trello boards",
   "html": "powerup.html",
   "author": "Explified",
   "capabilities": [

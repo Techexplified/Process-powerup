@@ -16,22 +16,22 @@ TrelloPowerUp.initialize({
   // Called when Trello prompts authorization
   "show-authorization": function (t) {
     return t.popup({
-      title: "Authorize Lean Canvas",
+      title: "Authorize Process Power-Up",
       url: "./auth.html",
-      height: 320,
+      height: 340,
     });
   },
 
   // Called when member opens Power-Up settings from the board menu
   "show-settings": function (t) {
     return t.popup({
-      title: "Lean Canvas Settings",
+      title: "Process Power-Up Settings",
       url: "./settings.html",
-      height: 280,
+      height: 290,
     });
   },
 
-  // Adds a Lean Canvas button in the top board header
+  // Adds a Process Power-Up button in the top board header
   "board-buttons": function () {
     return [
       {
@@ -39,14 +39,14 @@ TrelloPowerUp.initialize({
           dark: ICON_URL,
           light: ICON_URL,
         },
-        text: "Lean Canvas",
+        text: "Process Power-Up",
         callback: async function (t) {
           const authorized = await isAuthorized(t);
           if (!authorized) {
             return t.popup({
-              title: "Authorize Lean Canvas",
+              title: "Authorize Process Power-Up",
               url: "./auth.html",
-              height: 320,
+              height: 340,
             });
           }
 
@@ -55,7 +55,7 @@ TrelloPowerUp.initialize({
             url: "./canvas.html",
             accentColor: "#181d22",
             fullscreen: true,
-            title: "Lean Canvas",
+            title: "Process Power-Up",
           });
         },
       },
@@ -67,14 +67,14 @@ TrelloPowerUp.initialize({
     return [
       {
         icon: ICON_URL,
-        text: "Lean Canvas",
+        text: "Process Power-Up",
         callback: async function (t) {
           const authorized = await isAuthorized(t);
           if (!authorized) {
             return t.popup({
-              title: "Authorize Lean Canvas",
+              title: "Authorize Process Power-Up",
               url: "./auth.html",
-              height: 320,
+              height: 340,
             });
           }
 
@@ -83,7 +83,7 @@ TrelloPowerUp.initialize({
             url: "./canvas.html",
             accentColor: "#181d22",
             fullscreen: true,
-            title: "Lean Canvas",
+            title: "Process Power-Up",
           });
         },
       },

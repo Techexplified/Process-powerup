@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Link Canvas — Trello Power-Up Dev Sandbox</title>
+    <title>Process Power-Up — Trello Power-Up Dev Sandbox</title>
     <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -199,8 +199,8 @@
   <body>
     <header>
       <div class="logo-group">
-        <img src="./icons/icon.svg" alt="Link Canvas" class="logo-icon" />
-        <h1>Link Canvas</h1>
+        <img src="./icons/icon.svg" alt="Process Power-Up" class="logo-icon" />
+        <h1>Process Power-Up</h1>
         <span class="badge">Trello Power-Up Dev Sandbox</span>
       </div>
       <div>
@@ -217,7 +217,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <div class="card-title">Live Preview</div>
             <div class="tab-buttons">
-              <button class="tab-btn active" onclick="switchTab('./canvas.html', this)">Link Canvas</button>
+              <button class="tab-btn active" onclick="switchTab('./canvas.html', this)">Process Canvas</button>
               <button class="tab-btn" onclick="switchTab('./auth.html', this)">Auth Screen</button>
               <button class="tab-btn" onclick="switchTab('./settings.html', this)">Settings</button>
               <button class="tab-btn" onclick="switchTab('./powerup.html', this)">Connector</button>
@@ -239,14 +239,14 @@
             <div style="padding: 12px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--border);">
               <strong style="color: var(--primary-cyan);">🔗 /auth.html</strong>
               <div style="color: var(--text-subtle); margin-top: 4px; font-size: 12px;">
-                The redesigned Link Canvas authorization screen. Handles popup OAuth, origin security checks, and member-scoped token persistence.
+                The Process Power-Up authorization screen. Handles popup OAuth, origin security checks, and member-scoped token persistence.
               </div>
             </div>
 
             <div style="padding: 12px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--border);">
               <strong style="color: #a78bfa;">⚡ /authorized.html</strong>
               <div style="color: var(--text-subtle); margin-top: 4px; font-size: 12px;">
-                Trello OAuth return page. Receives <code>#token=...</code> and posts it safely back to the opener via <code>link-canvas-auth</code> postMessage.
+                Trello OAuth return page. Receives <code>#token=...</code> and posts it safely back to the opener via <code>process-powerup-auth</code> postMessage.
               </div>
             </div>
 

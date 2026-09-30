@@ -32,9 +32,9 @@ export default function SettingsPopup({ t }) {
       } else {
         // In local mock or network failure:
         const mockFallback = {
-          fullName: "Link Canvas User",
-          username: "canvas_creator",
-          initials: "LC",
+          fullName: "Process User",
+          username: "process_creator",
+          initials: "PU",
         };
         setMember(mockFallback);
         setStatus("connected");
@@ -51,9 +51,9 @@ export default function SettingsPopup({ t }) {
   function handleReauthorize() {
     if (t && typeof t.popup === "function") {
       t.popup({
-        title: "Authorize Link Canvas",
+        title: "Authorize Process Power-Up",
         url: "./auth.html",
-        height: 480,
+        height: 340,
       });
     } else {
       window.location.href = "./auth.html";
@@ -65,9 +65,8 @@ export default function SettingsPopup({ t }) {
       t.modal({
         url: "./canvas.html",
         accentColor: "#181d22",
-        height: 580,
-        fullscreen: false,
-        title: "Link Canvas",
+        fullscreen: true,
+        title: "Process Power-Up",
       });
     }
     if (t && typeof t.closePopup === "function") {
@@ -92,10 +91,10 @@ export default function SettingsPopup({ t }) {
         </div>
         <h3 className="settings-title">Not Connected</h3>
         <p className="settings-subtitle" style={{ margin: "6px 0 18px" }}>
-          Authorize Link Canvas to access your board cards and build visual relationship canvases.
+          Authorize Process Power-Up to access your board cards and build visual process workflows.
         </p>
         <button type="button" onClick={handleReauthorize} className="settings-btn-reauth">
-          Authorize Link Canvas
+          Authorize Process Power-Up
         </button>
       </div>
     );
@@ -107,7 +106,7 @@ export default function SettingsPopup({ t }) {
         {member?.avatarUrl ? (
           <img src={`${member.avatarUrl}/50.png`} alt={member.fullName} className="settings-avatar" />
         ) : (
-          <div className="settings-avatar-fallback">{member?.initials || "LC"}</div>
+          <div className="settings-avatar-fallback">{member?.initials || "PU"}</div>
         )}
         <div>
           <h3 className="settings-title">{member?.fullName || "Trello Member"}</h3>
@@ -123,7 +122,7 @@ export default function SettingsPopup({ t }) {
       <div className="settings-info-card">
         <div className="settings-info-row">
           <span className="settings-info-label">Power-Up</span>
-          <span className="settings-info-value">Link Canvas</span>
+          <span className="settings-info-value">Process Power-Up</span>
         </div>
         <div className="settings-info-row">
           <span className="settings-info-label">Token Scope</span>
@@ -136,7 +135,7 @@ export default function SettingsPopup({ t }) {
       </div>
 
       <button type="button" onClick={handleOpenCanvas} className="settings-btn-primary">
-        Open Link Canvas
+        Open Process Canvas
       </button>
 
       <button type="button" onClick={handleDisconnect} className="settings-btn-disconnect">
