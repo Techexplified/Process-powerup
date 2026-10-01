@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { getAllAvailableMembers } from "../lib/processStore.js";
+import { getAllAvailableMembers, getMemberById } from "../lib/processStore.js";
+import { CalendarIcon, CloseIcon } from "../lib/icons.jsx";
 
 export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
   const [name, setName] = useState("");
@@ -56,14 +57,16 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
         aria-modal="true"
       >
         <div className="proc-dialog-header">
-          <h3 className="proc-dialog-title">Add Step</h3>
+          <div className="proc-dialog-title-group">
+            <h3 className="proc-dialog-title">Add Step</h3>
+          </div>
           <button
             type="button"
-            className="proc-dialog-close"
+            className="proc-dialog-close-btn"
             onClick={onClose}
             aria-label="Close"
           >
-            ✕
+            <CloseIcon width={13} height={13} />
           </button>
         </div>
 
@@ -76,7 +79,7 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
               <input
                 type="text"
                 className="proc-dialog-input"
-                placeholder="Enter step name.."
+                placeholder="Enter step name..."
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
@@ -100,10 +103,10 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
             <div className="proc-dialog-two-cols">
               <div className="proc-dialog-group">
                 <label className="proc-dialog-label">Target Date (Optional)</label>
-                <div className="proc-input-icon-wrap">
+                <div className="proc-date-input-wrapper">
                   <input
                     type="date"
-                    className="proc-dialog-input"
+                    className="proc-dialog-date-input"
                     value={targetDate}
                     onChange={(e) => setTargetDate(e.target.value)}
                   />
@@ -118,16 +121,35 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
                     className="proc-dialog-select-btn"
                     onClick={() => setShowMemberPicker(!showMemberPicker)}
                   >
-                    <span>
-                      {selectedAssignees.length === 0
-                        ? "👥 Tag people..."
-                        : `${selectedAssignees.length} people tagged`}
-                    </span>
-                    <span>▾</span>
+                    <div className="proc-select-btn-inner">
+                      {selectedAssignees.length === 0 ? (
+                        <span className="proc-select-placeholder">👥 Tag people...</span>
+                      ) : (
+                        <div className="proc-selected-avatars-row">
+                          {selectedAssignees.map((id) => {
+                            const mem = getMemberById(id);
+                            return (
+                              <span
+                                key={id}
+                                className="proc-tag-mini-avatar"
+                                style={{ background: mem.bg, color: mem.text }}
+                                title={mem.name}
+                              >
+                                {mem.initials}
+                              </span>
+                            );
+                          })}
+                          <span className="proc-selected-count-label">
+                            {selectedAssignees.length} selected
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="proc-dropdown-arrow-caret">▾</span>
                   </button>
 
                   {showMemberPicker && (
-                    <div className="proc-member-dropdown-menu">
+                    <div className="proc-member-dropdown-menu custom-slim-scrollbar">
                       {members.map((m) => {
                         const isSel = selectedAssignees.includes(m.id);
                         return (
@@ -142,7 +164,10 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
                             >
                               {m.initials}
                             </span>
-                            <span className="proc-dropdown-name">{m.name}</span>
+                            <div className="proc-dropdown-info">
+                              <span className="proc-dropdown-name">{m.name}</span>
+                              <span className="proc-dropdown-role">{m.role || "Member"}</span>
+                            </div>
                             {isSel && <span className="proc-dropdown-check">✓</span>}
                           </div>
                         );
@@ -171,3 +196,4 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
     </div>
   );
 }
+

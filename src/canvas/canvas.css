@@ -2266,8 +2266,8 @@ html, body {
 .proc-dialog-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
   z-index: 2000;
   display: flex;
   align-items: center;
@@ -2282,7 +2282,7 @@ html, body {
 }
 
 .proc-dialog-card {
-  background: #161b22;
+  background: #141a24;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   max-width: 480px;
@@ -2290,15 +2290,15 @@ html, body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .proc-add-step-modal {
-  max-width: 520px;
+  max-width: 480px;
 }
 
 .proc-dialog-hold-card {
-  max-width: 520px;
+  max-width: 500px;
   border-color: rgba(245, 158, 11, 0.4);
 }
 
@@ -2315,21 +2315,25 @@ html, body {
   font-weight: 700;
   color: #ffffff;
   margin: 0;
+  letter-spacing: -0.1px;
 }
 
-.proc-dialog-close {
+.proc-dialog-close-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
   background: transparent;
   border: none;
   color: #8b949e;
-  font-size: 14px;
   cursor: pointer;
-  padding: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.12s ease;
 }
 
-.proc-dialog-close:hover {
+.proc-dialog-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
 }
 
@@ -2356,7 +2360,7 @@ html, body {
 
 .proc-hold-glyph-pause {
   color: #f59e0b;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .proc-hold-headings-wrap {
@@ -2424,13 +2428,13 @@ html, body {
   color: #cbd5e1;
 }
 
-.proc-dialog-input,
-.proc-dialog-textarea {
+.proc-dialog-input {
   width: 100%;
-  background: #0e1113;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  height: 38px;
+  background: #0c1017;
+  border: 1px solid #283241;
   border-radius: 6px;
-  padding: 8px 12px;
+  padding: 0 12px;
   color: #ffffff;
   font-size: 13px;
   font-family: inherit;
@@ -2439,14 +2443,31 @@ html, body {
   box-sizing: border-box;
 }
 
-.proc-dialog-textarea {
-  resize: vertical;
-  line-height: 1.45;
+.proc-dialog-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
-.proc-dialog-input:focus,
+.proc-dialog-textarea {
+  width: 100%;
+  min-height: 72px;
+  background: #0c1017;
+  border: 1px solid #283241;
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: #ffffff;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  resize: none;
+  line-height: 1.45;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
 .proc-dialog-textarea:focus {
-  border-color: #388bfd;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .proc-textarea-amber-border {
@@ -2464,7 +2485,170 @@ html, body {
   gap: 12px;
 }
 
-/* 2-Column Unblocker Member Grid (Image 5) */
+/* Date Input Wrapper */
+.proc-date-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.proc-dialog-date-input {
+  width: 100%;
+  height: 38px;
+  background: #0c1017;
+  border: 1px solid #283241;
+  border-radius: 6px;
+  padding: 0 10px;
+  color: #cbd5e1;
+  font-size: 12.5px;
+  font-family: inherit;
+  outline: none;
+  color-scheme: dark;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.proc-dialog-date-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Member Picker Button */
+.proc-member-picker-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.proc-dialog-select-btn {
+  width: 100%;
+  height: 38px;
+  background: #0c1017;
+  border: 1px solid #283241;
+  border-radius: 6px;
+  padding: 0 10px;
+  color: #cbd5e1;
+  font-size: 12.5px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.proc-dialog-select-btn:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.proc-select-btn-inner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.proc-select-placeholder {
+  color: #8b949e;
+  font-size: 12.5px;
+}
+
+.proc-selected-avatars-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.proc-tag-mini-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 8.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.proc-selected-count-label {
+  font-size: 12px;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.proc-dropdown-arrow-caret {
+  color: #8b949e;
+  font-size: 12px;
+}
+
+/* Member Dropdown Menu */
+.proc-member-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #161e2a;
+  border: 1px solid #2e3a4e;
+  border-radius: 8px;
+  z-index: 200;
+  max-height: 190px;
+  overflow-y: auto;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+}
+
+.proc-member-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.proc-member-dropdown-item:hover {
+  background: #1f2a3a;
+}
+
+.proc-member-dropdown-item.selected {
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.proc-dropdown-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.proc-dropdown-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.proc-dropdown-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.proc-dropdown-role {
+  font-size: 11px;
+  color: #8b949e;
+}
+
+.proc-dropdown-check {
+  color: #3b82f6;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* 2-Column Unblocker Member Grid (Hold Modal) */
 .proc-unblocker-grid-2col {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2478,8 +2662,8 @@ html, body {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #0e1113;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0c1017;
+  border: 1px solid #283241;
   border-radius: 8px;
   padding: 8px 10px;
   cursor: pointer;
@@ -2487,7 +2671,7 @@ html, body {
 }
 
 .proc-unblocker-card-item:hover {
-  background: #1c2128;
+  background: #182230;
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -2497,10 +2681,10 @@ html, body {
 }
 
 .proc-unblocker-circle-avatar {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -2514,7 +2698,7 @@ html, body {
 }
 
 .proc-unblocker-item-name {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: #ffffff;
   white-space: nowrap;
@@ -2523,7 +2707,7 @@ html, body {
 }
 
 .proc-unblocker-item-role {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #8b949e;
   white-space: nowrap;
   overflow: hidden;
@@ -2536,7 +2720,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -2544,10 +2728,11 @@ html, body {
   background: transparent;
   border: none;
   color: #8b949e;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
   cursor: pointer;
   padding: 6px 12px;
+  transition: color 0.12s ease;
 }
 
 .proc-dialog-btn-cancel-link:hover {
@@ -2559,7 +2744,7 @@ html, body {
   color: #ffffff;
   border: none;
   border-radius: 6px;
-  padding: 8px 20px;
+  padding: 7px 18px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -2575,7 +2760,7 @@ html, body {
   color: #000000;
   border: none;
   border-radius: 6px;
-  padding: 8px 18px;
+  padding: 7px 18px;
   font-size: 13px;
   font-weight: 700;
   display: inline-flex;
@@ -2591,51 +2776,4 @@ html, body {
 
 .proc-btn-hold-icon {
   font-size: 12px;
-}
-
-/* Reassign Modal Grid */
-.proc-reassign-members-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.proc-reassign-member-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #0e1113;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 8px 10px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.proc-reassign-member-card:hover {
-  background: #1c2128;
-  border-color: #f59e0b;
-}
-
-.proc-reassign-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.proc-reassign-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #ffffff;
-}
-
-.proc-reassign-role {
-  font-size: 11px;
-  color: #8b949e;
 }
