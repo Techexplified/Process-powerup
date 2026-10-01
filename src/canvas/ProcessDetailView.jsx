@@ -4,8 +4,18 @@ import {
   saveCardProcess,
   calculateProcessStats,
   getMemberById,
+  getAllAvailableMembers,
 } from "../lib/processStore.js";
-import { ProcessIcon, CheckIcon } from "../lib/icons.jsx";
+import {
+  ProcessIcon,
+  CheckIcon,
+  CalendarIcon,
+  MoreHorizontalIcon,
+  ChevronDownIcon,
+  CloseIcon,
+  PlayIcon,
+  PlusIcon,
+} from "../lib/icons.jsx";
 import AddStepDialog from "./AddStepDialog.jsx";
 import HoldReasonDialog from "./HoldReasonDialog.jsx";
 
@@ -19,8 +29,11 @@ export default function ProcessDetailView({
   const [loading, setLoading] = useState(true);
   const [showAddStepDialog, setShowAddStepDialog] = useState(false);
   const [holdingStep, setHoldingStep] = useState(null);
-  const [activeStepMenu, setActiveStepMenu] = useState(null);
-  const [reassignStepId, setReassignStepId] = useState(null);
+  const [activeStepMenuId, setActiveStepMenuId] = useState(null);
+  const [activeStatusMenuId, setActiveStatusMenuId] = useState(null);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+  const [expandedHoldStepId, setExpandedHoldStepId] = useState(null);
+  const [reassignStep, setReassignStep] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -29,6 +42,11 @@ export default function ProcessDetailView({
     loadCardProcess(card.id, t, card.title, card.description).then((data) => {
       if (isMounted) {
         setProcessData(data);
+        // Default expand first held step if any
+        const firstHeld = data?.steps?.find((s) => s.status === "held");
+        if (firstHeld) {
+          setExpandedHoldStepId(firstHeld.id);
+        }
         setLoading(false);
       }
     });
@@ -69,8 +87,15 @@ export default function ProcessDetailView({
     updateAndPersist(updated);
   }
 
-  // Toggle Step Status (To do / Done / Held)
+  // Set Step Status
   function handleSetStepStatus(stepId, newStatus) {
+    setActiveStatusMenuId(null);
+    if (newStatus === "held") {
+      const stepObj = (processData.steps || []).find((s) => s.id === stepId);
+      if (stepObj) setHoldingStep(stepObj);
+      return;
+    }
+
     const updatedSteps = (processData.steps || []).map((step) => {
       if (step.id === stepId) {
         return {
@@ -98,6 +123,7 @@ export default function ProcessDetailView({
       }
       return step;
     });
+    setExpandedHoldStepId(stepId);
     updateAndPersist({
       ...processData,
       steps: updatedSteps,
@@ -121,8 +147,32 @@ export default function ProcessDetailView({
     });
   }
 
+  // Reassign Step Unblocker
+  function handleReassignUnblocker(stepId, newMemberId) {
+    const updatedSteps = (processData.steps || []).map((step) => {
+      if (step.id === stepId && step.holdReasons?.length > 0) {
+        const updatedReasons = [...step.holdReasons];
+        updatedReasons[0] = {
+          ...updatedReasons[0],
+          taggedPeople: [newMemberId],
+        };
+        return {
+          ...step,
+          holdReasons: updatedReasons,
+        };
+      }
+      return step;
+    });
+    setReassignStep(null);
+    updateAndPersist({
+      ...processData,
+      steps: updatedSteps,
+    });
+  }
+
   // Delete Step
   function handleDeleteStep(stepId) {
+    setActiveStepMenuId(null);
     const updatedSteps = (processData.steps || []).filter((s) => s.id !== stepId);
     updateAndPersist({
       ...processData,
@@ -134,7 +184,7 @@ export default function ProcessDetailView({
     return (
       <div className="proc-detail-loading">
         <div className="proc-spinner"></div>
-        <span>Loading card process...</span>
+        <span>Loading workflow...</span>
       </div>
     );
   }
@@ -142,14 +192,18 @@ export default function ProcessDetailView({
   // Disabled State
   if (!processData?.enabled) {
     return (
-      <div className="proc-detail-container custom-slim-scrollbar">
+      <div className="proc-detail-view custom-slim-scrollbar">
         <div className="proc-detail-header-nav">
-          <button type="button" className="proc-btn-back" onClick={onBack}>
-            ← Back to all cards
-          </button>
-          <button type="button" className="proc-dialog-close" onClick={onClose}>
-            ✕
-          </button>
+          {onBack && (
+            <button type="button" className="proc-btn-back" onClick={onBack}>
+              ← Back to all cards
+            </button>
+          )}
+          {onClose && (
+            <button type="button" className="proc-dialog-close" onClick={onClose}>
+              <CloseIcon width={14} height={14} />
+            </button>
+          )}
         </div>
 
         <div className="proc-disabled-hero-card">
@@ -177,10 +231,15 @@ export default function ProcessDetailView({
 
   const steps = processData.steps || [];
   const stats = calculateProcessStats(steps);
+  const formattedDueDate = card.due
+    ? new Date(card.due).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    : processData.dueDate
+    ? new Date(processData.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    : "Oct 10";
 
   return (
-    <div className="proc-detail-container custom-slim-scrollbar">
-      {/* 1. TOP HEADER */}
+    <div className="proc-detail-view custom-slim-scrollbar">
+      {/* 1. HEADER */}
       <div className="proc-detail-header">
         <div className="proc-detail-header-left">
           {onBack && (
@@ -195,13 +254,13 @@ export default function ProcessDetailView({
           )}
 
           <div className="proc-detail-app-icon">
-            <ProcessIcon width={20} height={20} />
+            <ProcessIcon width={18} height={18} />
           </div>
 
           <div className="proc-detail-titles-col">
             <div className="proc-detail-title-row">
               <h2 className="proc-detail-main-title">
-                {processData.title || card.title}
+                {processData.title || `${card.title} process`}
               </h2>
               <span className="proc-badge-active">Active</span>
             </div>
@@ -213,35 +272,64 @@ export default function ProcessDetailView({
         </div>
 
         <div className="proc-detail-header-right">
-          {card.due && (
-            <span className="proc-detail-due-pill">
-              📅 {new Date(card.due).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-            </span>
+          <span className="proc-target-date-chip">
+            <CalendarIcon width={12} height={12} className="proc-chip-icon" />
+            <span>{formattedDueDate}</span>
+          </span>
+
+          <div className="proc-overflow-menu-wrapper">
+            <button
+              type="button"
+              className="proc-btn-icon-options"
+              onClick={() => setShowHeaderMenu(!showHeaderMenu)}
+              title="Options"
+            >
+              <MoreHorizontalIcon width={16} height={16} />
+            </button>
+
+            {showHeaderMenu && (
+              <div className="proc-header-dropdown-menu">
+                <div
+                  className="proc-dropdown-item"
+                  onClick={() => {
+                    setShowHeaderMenu(false);
+                    handleToggleProcessEnable();
+                  }}
+                >
+                  Turn off process
+                </div>
+                <div
+                  className="proc-dropdown-item proc-item-danger"
+                  onClick={() => {
+                    setShowHeaderMenu(false);
+                    updateAndPersist({ ...processData, steps: [] });
+                  }}
+                >
+                  Clear all steps
+                </div>
+              </div>
+            )}
+          </div>
+
+          {onClose && (
+            <button
+              type="button"
+              className="proc-btn-icon-close"
+              onClick={onClose}
+              title="Close"
+            >
+              <CloseIcon width={14} height={14} />
+            </button>
           )}
-          <button
-            type="button"
-            className="proc-btn-icon-options"
-            onClick={handleToggleProcessEnable}
-            title="Turn off Process on this card"
-          >
-            ⚙
-          </button>
-          <button
-            type="button"
-            className="proc-btn-icon-close"
-            onClick={onClose}
-            title="Close"
-          >
-            ✕
-          </button>
         </div>
       </div>
 
-      {/* 2. PROGRESS BAR & STATUS BREAKDOWN */}
+      {/* 2. PROGRESS AREA ("25%  ·  1 of 4 steps" + Segmented Bar + Legend) */}
       <div className="proc-detail-progress-section">
         <div className="proc-detail-progress-top">
-          <div className="proc-progress-pct-col">
+          <div className="proc-progress-pct-row">
             <span className="proc-progress-big-pct">{stats.percent}%</span>
+            <span className="proc-progress-dot-sep">·</span>
             <span className="proc-progress-sub-frac">
               {stats.done} of {stats.total} steps
             </span>
@@ -263,7 +351,7 @@ export default function ProcessDetailView({
           </div>
         </div>
 
-        {/* Segmented multi-color progress track */}
+        {/* Segmented Bar (one segment per step) */}
         <div className="proc-segmented-track">
           {steps.map((s, i) => {
             const isDone = s.status === "done";
@@ -282,12 +370,17 @@ export default function ProcessDetailView({
 
       {/* 3. STEP LIST */}
       <div className="proc-detail-steps-list">
-        {steps.map((step, idx) => {
+        {steps.map((step) => {
           const isDone = step.status === "done";
           const isHeld = step.status === "held";
-          const isTodo = step.status === "pending" || !step.status;
+          const isPending = step.status === "pending" || !step.status;
           const holdReasons = step.holdReasons || [];
           const primaryHoldReason = holdReasons[0];
+          const isHoldExpanded = isHeld && expandedHoldStepId === step.id;
+
+          const taggedMember = primaryHoldReason?.taggedPeople?.[0]
+            ? getMemberById(primaryHoldReason.taggedPeople[0])
+            : getMemberById("DH");
 
           return (
             <div
@@ -297,7 +390,7 @@ export default function ProcessDetailView({
               }`}
             >
               <div className="proc-step-item-header">
-                {/* Status Icon */}
+                {/* Status Indicator Glyph */}
                 <div
                   className={`proc-step-status-icon ${
                     isDone ? "icon-done" : isHeld ? "icon-held" : "icon-todo"
@@ -305,14 +398,14 @@ export default function ProcessDetailView({
                   onClick={() =>
                     handleSetStepStatus(step.id, isDone ? "pending" : "done")
                   }
-                  title="Toggle status"
+                  title="Toggle done"
                 >
                   {isDone ? (
                     <CheckIcon width={13} height={13} />
                   ) : isHeld ? (
-                    <span>⏸</span>
+                    <span className="proc-held-pause-glyph">⏸</span>
                   ) : (
-                    <span>○</span>
+                    <span className="proc-todo-circle-glyph">○</span>
                   )}
                 </div>
 
@@ -329,7 +422,8 @@ export default function ProcessDetailView({
                   <div className="proc-step-meta-row">
                     {step.targetDate && (
                       <span className="proc-step-meta-date">
-                        📅 {step.targetDate}
+                        <CalendarIcon width={11} height={11} />
+                        <span>{step.targetDate}</span>
                       </span>
                     )}
 
@@ -351,91 +445,129 @@ export default function ProcessDetailView({
                       </div>
                     )}
 
-                    {isHeld && holdReasons.length > 1 && (
-                      <span className="proc-hold-count-badge">
-                        {holdReasons.length} hold reasons
-                      </span>
+                    {/* Collapsed Hold Reason Chip (Expands on click) */}
+                    {isHeld && !isHoldExpanded && (
+                      <button
+                        type="button"
+                        className="proc-hold-reason-chip-btn"
+                        onClick={() => setExpandedHoldStepId(step.id)}
+                      >
+                        {holdReasons.length > 1
+                          ? `${holdReasons.length} hold reasons`
+                          : "1 hold reason"}
+                      </button>
                     )}
                   </div>
                 </div>
 
-                {/* Status Dropdown Button & Menu */}
+                {/* Status Dropdown Pill & Overflow Menu */}
                 <div className="proc-step-right-actions">
-                  {isDone ? (
+                  <div className="proc-status-dropdown-wrapper">
                     <button
                       type="button"
-                      className="proc-status-pill-btn pill-btn-done"
-                      onClick={() => handleSetStepStatus(step.id, "pending")}
+                      className={`proc-status-pill-select ${
+                        isDone
+                          ? "status-done"
+                          : isHeld
+                          ? "status-held"
+                          : "status-todo"
+                      }`}
+                      onClick={() =>
+                        setActiveStatusMenuId(
+                          activeStatusMenuId === step.id ? null : step.id
+                        )
+                      }
                     >
-                      Done ▾
+                      <span>{isDone ? "Done" : isHeld ? "Held" : "To do"}</span>
+                      <ChevronDownIcon width={10} height={10} />
                     </button>
-                  ) : isHeld ? (
-                    <button
-                      type="button"
-                      className="proc-status-pill-btn pill-btn-held"
-                      onClick={() => handleResumeStep(step.id)}
-                    >
-                      Held ▾
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="proc-status-pill-btn pill-btn-todo"
-                      onClick={() => {
-                        setHoldingStep(step);
-                      }}
-                    >
-                      To do ▾
-                    </button>
-                  )}
 
-                  <button
-                    type="button"
-                    className="proc-step-btn-more"
-                    onClick={() => handleDeleteStep(step.id)}
-                    title="Delete step"
-                  >
-                    🗑
-                  </button>
+                    {activeStatusMenuId === step.id && (
+                      <div className="proc-status-menu-dropdown">
+                        <div
+                          className={`proc-status-menu-item ${isPending ? "selected" : ""}`}
+                          onClick={() => handleSetStepStatus(step.id, "pending")}
+                        >
+                          To do
+                        </div>
+                        <div
+                          className="proc-status-menu-item"
+                          onClick={() => handleSetStepStatus(step.id, "in_progress")}
+                        >
+                          In progress
+                        </div>
+                        <div
+                          className={`proc-status-menu-item ${isHeld ? "selected" : ""}`}
+                          onClick={() => handleSetStepStatus(step.id, "held")}
+                        >
+                          Held
+                        </div>
+                        <div
+                          className={`proc-status-menu-item ${isDone ? "selected" : ""}`}
+                          onClick={() => handleSetStepStatus(step.id, "done")}
+                        >
+                          Done
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Step Overflow Menu ("...") */}
+                  <div className="proc-step-overflow-wrapper">
+                    <button
+                      type="button"
+                      className="proc-step-btn-more"
+                      onClick={() =>
+                        setActiveStepMenuId(
+                          activeStepMenuId === step.id ? null : step.id
+                        )
+                      }
+                      title="More options"
+                    >
+                      <MoreHorizontalIcon width={15} height={15} />
+                    </button>
+
+                    {activeStepMenuId === step.id && (
+                      <div className="proc-step-dropdown-menu">
+                        <div
+                          className="proc-dropdown-item proc-item-danger"
+                          onClick={() => handleDeleteStep(step.id)}
+                        >
+                          Delete step
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Hold Reason Banner (When Step is Held) */}
-              {isHeld && (
+              {/* Expanded Hold Reason Banner */}
+              {isHoldExpanded && (
                 <div className="proc-held-card-banner">
                   <div className="proc-held-banner-body">
                     <p className="proc-held-reason-text">
                       {primaryHoldReason?.reason ||
-                        "Step placed on hold. Waiting for blocker resolution."}
+                        "Twilio staging webhook test credentials expired. Waiting on IT SecOps renewal."}
                     </p>
 
                     <div className="proc-held-unblocker-row">
-                      {primaryHoldReason?.taggedPeople &&
-                      primaryHoldReason.taggedPeople.length > 0 ? (
-                        primaryHoldReason.taggedPeople.map((id) => {
-                          const mem = getMemberById(id);
-                          return (
-                            <span key={id} className="proc-unblocker-tag">
-                              <span
-                                className="proc-unblocker-tag-avatar"
-                                style={{ background: mem.bg, color: mem.text }}
-                              >
-                                {mem.initials}
-                              </span>
-                              <span className="proc-unblocker-tag-name">
-                                {mem.name}
-                              </span>
-                            </span>
-                          );
-                        })
-                      ) : (
-                        <span className="proc-unblocker-tag">
-                          <span className="proc-unblocker-tag-avatar">DH</span>
-                          <span className="proc-unblocker-tag-name">
-                            Devon Hayes
-                          </span>
-                        </span>
-                      )}
+                      <span
+                        className="proc-unblocker-avatar"
+                        style={{ background: taggedMember.bg, color: taggedMember.text }}
+                      >
+                        {taggedMember.initials}
+                      </span>
+                      <span className="proc-unblocker-name">
+                        {taggedMember.name}
+                      </span>
+                      <span className="proc-unblocker-sep">·</span>
+                      <button
+                        type="button"
+                        className="proc-btn-reassign"
+                        onClick={() => setReassignStep(step)}
+                      >
+                        Reassign
+                      </button>
                     </div>
                   </div>
 
@@ -444,7 +576,8 @@ export default function ProcessDetailView({
                     className="proc-btn-resume-held"
                     onClick={() => handleResumeStep(step.id)}
                   >
-                    ▶ Resume
+                    <PlayIcon width={10} height={10} className="proc-resume-icon" />
+                    <span>Resume</span>
                   </button>
                 </div>
               )}
@@ -453,14 +586,15 @@ export default function ProcessDetailView({
         })}
       </div>
 
-      {/* 4. BOTTOM ACTION BAR */}
+      {/* 4. STICKY FOOTER */}
       <div className="proc-detail-footer-bar">
         <button
           type="button"
-          className="proc-btn-add-step-outline"
+          className="proc-btn-add-step-secondary"
           onClick={() => setShowAddStepDialog(true)}
         >
-          + Add step
+          <PlusIcon width={13} height={13} />
+          <span>Add step</span>
         </button>
 
         <span className="proc-footer-step-counter">
@@ -481,6 +615,46 @@ export default function ProcessDetailView({
         onClose={() => setHoldingStep(null)}
         onSubmitHold={handleSubmitHold}
       />
+
+      {/* Reassign Dialog */}
+      {reassignStep && (
+        <div className="proc-dialog-backdrop" onClick={() => setReassignStep(null)}>
+          <div className="proc-dialog-window" onClick={(e) => e.stopPropagation()}>
+            <div className="proc-dialog-header">
+              <h3 className="proc-dialog-title">Reassign unblocker</h3>
+              <button
+                type="button"
+                className="proc-dialog-close"
+                onClick={() => setReassignStep(null)}
+              >
+                <CloseIcon width={14} height={14} />
+              </button>
+            </div>
+            <div className="proc-dialog-body">
+              <p className="proc-reassign-sub">
+                Select team member responsible for unblocking this step:
+              </p>
+              <div className="proc-members-picker-list">
+                {getAllAvailableMembers().map((mem) => (
+                  <div
+                    key={mem.id}
+                    className="proc-member-select-row"
+                    onClick={() => handleReassignUnblocker(reassignStep.id, mem.id)}
+                  >
+                    <span
+                      className="proc-member-picker-avatar"
+                      style={{ background: mem.bg, color: mem.text }}
+                    >
+                      {mem.initials}
+                    </span>
+                    <span className="proc-member-picker-name">{mem.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
