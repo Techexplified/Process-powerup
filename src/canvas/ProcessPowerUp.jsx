@@ -10,7 +10,7 @@ import AddStepModal from "./AddStepModal.jsx";
 import HoldModal from "./HoldModal.jsx";
 import DeleteConfirmModal from "./DeleteConfirmModal.jsx";
 
-export default function ProcessPowerUp({ cardId, cardTitle, t = null }) {
+export default function ProcessPowerUp({ cardId, cardTitle, cardDescription = "", t = null }) {
   const [processData, setProcessData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all"); // 'all' | 'pending' | 'held' | 'done'
@@ -26,7 +26,7 @@ export default function ProcessPowerUp({ cardId, cardTitle, t = null }) {
     let isMounted = true;
     setLoading(true);
 
-    loadCardProcess(cardId, t).then((data) => {
+    loadCardProcess(cardId, t, cardTitle, cardDescription).then((data) => {
       if (isMounted) {
         setProcessData(data);
         setLoading(false);
@@ -36,7 +36,7 @@ export default function ProcessPowerUp({ cardId, cardTitle, t = null }) {
     return () => {
       isMounted = false;
     };
-  }, [cardId, t]);
+  }, [cardId, cardTitle, cardDescription, t]);
 
   // Persist helper
   function updateAndPersist(newData) {
@@ -49,10 +49,11 @@ export default function ProcessPowerUp({ cardId, cardTitle, t = null }) {
     const updated = {
       ...processData,
       enabled: true,
-      title: processData?.title || `${cardTitle || "Card"} Workflow Process`,
+      title: processData?.title || (cardTitle ? `${cardTitle} Workflow` : "Process Workflow"),
       description:
         processData?.description ||
-        "Mandatory verification workflow before triggering production deployment gate.",
+        cardDescription ||
+        "Manage multi-step workflows, step assignees, hold reasons, dates.",
       status: "Active",
       steps: processData?.steps?.length ? processData.steps : [],
     };

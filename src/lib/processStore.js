@@ -1,12 +1,39 @@
-// Central Process & Card Store with persistence support for both Trello Power-Up context and LocalStorage
+// Central Process & Card Store with dynamic Trello board sync and LocalStorage persistence
 
-export const TEAM_MEMBERS = [
+// Palette generator for member avatars
+const MEMBER_COLORS = [
+  { bg: "#065f46", text: "#34d399" }, // Emerald
+  { bg: "#1e40af", text: "#60a5fa" }, // Blue
+  { bg: "#581c87", text: "#c084fc" }, // Purple
+  { bg: "#0e7490", text: "#38bdf8" }, // Cyan
+  { bg: "#b45309", text: "#fbbf24" }, // Amber
+  { bg: "#9f1239", text: "#fb7185" }, // Rose
+  { bg: "#3730a3", text: "#a5b4fc" }, // Indigo
+  { bg: "#064e3b", text: "#6ee7b7" }, // Teal
+];
+
+export function getMemberColor(id = "") {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash << 5) - hash + id.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % MEMBER_COLORS.length;
+  return MEMBER_COLORS[index];
+}
+
+// In-memory cache for dynamic board members
+let dynamicMembersMap = new Map();
+
+export const DEFAULT_MEMBERS = [
   { id: "SC", initials: "SC", name: "Sarah Connor", bg: "#065f46", text: "#34d399", role: "SecOps Lead" },
   { id: "AR", initials: "AR", name: "Alex Rivera", bg: "#1e40af", text: "#60a5fa", role: "Backend Engineer" },
   { id: "ER", initials: "ER", name: "Elena Rostova", bg: "#581c87", text: "#c084fc", role: "QA Engineer" },
   { id: "MV", initials: "MV", name: "Marcus Vance", bg: "#0e7490", text: "#38bdf8", role: "DevOps Engineer" },
   { id: "DH", initials: "DH", name: "Devon Hayes", bg: "#b45309", text: "#fbbf24", role: "IT SecOps" },
 ];
+
+export const TEAM_MEMBERS = DEFAULT_MEMBERS;
 
 export const INITIAL_BOARD_LISTS = [
   { id: "list-backlog", title: "Backlog" },
@@ -156,49 +183,135 @@ export const INITIAL_PROCESS_BY_CARD = {
       },
     ],
   },
-  "card-soc2-audit": {
-    enabled: true,
-    title: "SOC2 Compliance Verification",
-    description: "Verify infrastructure audit trail & IAM access controls.",
-    dueDate: "2026-09-30",
-    status: "Completed",
-    steps: [
-      {
-        id: "step-301",
-        name: "Collect CloudTrail and access logs",
-        description: "Archive immutable logs in S3 Glacier bucket.",
-        status: "done",
-        targetDate: "2026-09-29",
-        assignees: ["DH"],
-        holdReasons: [],
-      },
-      {
-        id: "step-302",
-        name: "Executive sign-off on penetration test results",
-        description: "Obtain SecOps leadership sign-off.",
-        status: "done",
-        targetDate: "2026-09-30",
-        assignees: ["SC"],
-        holdReasons: [],
-      },
-    ],
-  },
 };
 
 const STORAGE_KEY_CARDS = "process_powerup_board_cards_v1";
 const STORAGE_KEY_PROCESS_PREFIX = "process_powerup_card_";
 
 /**
- * Get member object by ID
+ * Register dynamic members fetched from Trello
+ */
+export function registerDynamicMembers(members = []) {
+  members.forEach((m) => {
+    if (m && m.id) {
+      const color = getMemberColor(m.id);
+      dynamicMembersMap.set(m.id, {
+        id: m.id,
+        initials: m.initials || (m.fullName || m.username || "MB").substring(0, 2).toUpperCase(),
+        name: m.fullName || m.username || "Member",
+        avatar: m.avatar || m.avatarUrl || null,
+        bg: color.bg,
+        text: color.text,
+      });
+    }
+  });
+}
+
+/**
+ * Get member object by ID (checks dynamic Trello members first, then defaults)
  */
 export function getMemberById(id) {
-  return TEAM_MEMBERS.find((m) => m.id === id) || {
+  if (!id) return { id: "unknown", initials: "?", name: "Unknown", bg: "#334155", text: "#cbd5e1" };
+  
+  if (dynamicMembersMap.has(id)) {
+    return dynamicMembersMap.get(id);
+  }
+
+  const defaultFound = DEFAULT_MEMBERS.find((m) => m.id === id);
+  if (defaultFound) return defaultFound;
+
+  const color = getMemberColor(id);
+  return {
     id,
     initials: id.substring(0, 2).toUpperCase(),
     name: id,
-    bg: "#334155",
-    text: "#cbd5e1",
+    bg: color.bg,
+    text: color.text,
   };
+}
+
+/**
+ * Get all available members
+ */
+export function getAllAvailableMembers() {
+  if (dynamicMembersMap.size > 0) {
+    return Array.from(dynamicMembersMap.values());
+  }
+  return DEFAULT_MEMBERS;
+}
+
+/**
+ * Fetch live data from Trello board (lists, cards, members)
+ */
+export async function fetchTrelloBoardData(t) {
+  if (!t || typeof t.lists !== "function" || typeof t.cards !== "function") {
+    return null;
+  }
+
+  try {
+    // 1. Fetch Board Info and Members
+    let boardInfo = null;
+    let membersList = [];
+    if (typeof t.board === "function") {
+      try {
+        boardInfo = await t.board("id", "name", "members");
+        if (boardInfo && boardInfo.members) {
+          membersList = boardInfo.members;
+          registerDynamicMembers(membersList);
+        }
+      } catch (e) {
+        console.warn("Could not fetch board info:", e);
+      }
+    }
+
+    // 2. Fetch Active Member
+    if (typeof t.member === "function") {
+      try {
+        const activeMember = await t.member("id", "fullName", "username", "initials", "avatar");
+        if (activeMember && activeMember.id) {
+          registerDynamicMembers([activeMember]);
+        }
+      } catch (e) {
+        console.warn("Could not fetch active member:", e);
+      }
+    }
+
+    // 3. Fetch Real Lists
+    const trelloLists = await t.lists("id", "name");
+    const lists = Array.isArray(trelloLists) && trelloLists.length > 0
+      ? trelloLists.map((l) => ({
+          id: l.id,
+          title: l.name,
+        }))
+      : INITIAL_BOARD_LISTS;
+
+    // 4. Fetch Real Cards
+    const trelloCards = await t.cards("id", "name", "desc", "idList", "idMembers", "labels", "due", "badges");
+    const cards = Array.isArray(trelloCards)
+      ? trelloCards.map((c) => ({
+          id: c.id,
+          listId: c.idList,
+          title: c.name,
+          description: c.desc || "",
+          assignees: c.idMembers || [],
+          labels: (c.labels || []).map((lbl) => ({
+            name: lbl.name || lbl.color || "Label",
+            color: lbl.color || "blue",
+          })),
+          due: c.due || null,
+        }))
+      : [];
+
+    return {
+      boardName: boardInfo?.name || "Trello Board",
+      lists,
+      cards,
+      members: getAllAvailableMembers(),
+    };
+  } catch (err) {
+    console.warn("Failed to fetch live Trello board data, using local state:", err);
+    return null;
+  }
 }
 
 /**
@@ -230,14 +343,16 @@ export function saveBoardCards(cards) {
 /**
  * Load process data for a specific card
  */
-export async function loadCardProcess(cardId, t = null) {
+export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc = "") {
   if (!cardId) return null;
 
   // 1. Try loading from Trello Power-Up card-shared storage
   if (t && typeof t.get === "function") {
     try {
       const trelloData = await t.get("card", "shared", "processData");
-      if (trelloData) return trelloData;
+      if (trelloData && trelloData.enabled !== undefined) {
+        return trelloData;
+      }
     } catch (e) {
       console.warn("Could not read from Trello storage:", e);
     }
@@ -253,16 +368,16 @@ export async function loadCardProcess(cardId, t = null) {
     console.error("Failed to load process for card:", cardId, e);
   }
 
-  // 3. Fallback to initial process if defined for this sample card
+  // 3. Fallback to sample initial process only for designated sample cards
   if (INITIAL_PROCESS_BY_CARD[cardId]) {
     return JSON.parse(JSON.stringify(INITIAL_PROCESS_BY_CARD[cardId]));
   }
 
-  // Default empty process structure (disabled)
+  // Default clean process structure (disabled) using actual card name
   return {
     enabled: false,
-    title: "Deployment & Verification Process",
-    description: "Manage multi-step workflows, step assignees, hold reasons, dates.",
+    title: cardTitle ? `${cardTitle} Workflow` : "Deployment & Verification Process",
+    description: cardDesc || "Manage multi-step workflows, step assignees, hold reasons, dates.",
     dueDate: "",
     status: "Draft",
     steps: [],

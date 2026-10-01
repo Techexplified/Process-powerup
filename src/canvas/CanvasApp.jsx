@@ -4,7 +4,8 @@ import {
   INITIAL_BOARD_LISTS,
   loadBoardCards,
   saveBoardCards,
-  TEAM_MEMBERS,
+  fetchTrelloBoardData,
+  getAllAvailableMembers,
 } from "../lib/processStore.js";
 import { ProcessIcon } from "../lib/icons.jsx";
 import BoardCard from "./BoardCard.jsx";
@@ -12,48 +13,82 @@ import CardDetailModal from "./CardDetailModal.jsx";
 import AddCardModal from "./AddCardModal.jsx";
 
 export default function CanvasApp({ t }) {
+  const [boardName, setBoardName] = useState("Process & Workflow Board");
+  const [lists, setLists] = useState(INITIAL_BOARD_LISTS);
   const [cards, setCards] = useState([]);
+  const [members, setMembers] = useState(getAllAvailableMembers());
   const [selectedCard, setSelectedCard] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMemberFilter, setSelectedMemberFilter] = useState("all");
   const [showAddCardModal, setShowAddCardModal] = useState(false);
-  const [directCardMode, setDirectCardMode] = useState(false);
+  const [isTrelloSynced, setIsTrelloSynced] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Initialize and check Trello card context
+  // Initialize and check Trello context
   useEffect(() => {
-    const loadedCards = loadBoardCards();
-    setCards(loadedCards);
+    let isMounted = true;
 
-    // Check if we are running inside a direct Trello card context (e.g., card-back-section or card-button modal)
-    if (t && typeof t.card === "function") {
-      t.card("id", "name", "desc")
-        .then((trelloCard) => {
-          if (trelloCard && trelloCard.id) {
-            // Find existing or create placeholder
-            let matched = loadedCards.find((c) => c.id === trelloCard.id);
-            if (!matched) {
-              matched = {
-                id: trelloCard.id,
-                title: trelloCard.name || "Trello Card",
-                description: trelloCard.desc || "",
-                listId: "list-deployment",
-                assignees: ["SC"],
-                labels: [{ name: "Trello", color: "purple" }],
-              };
-            }
-            setSelectedCard(matched);
-            setDirectCardMode(true);
+    async function initData() {
+      // 1. Try to fetch live Trello Board data (lists, cards, members)
+      if (t) {
+        const trelloData = await fetchTrelloBoardData(t);
+        if (isMounted && trelloData) {
+          if (trelloData.boardName) setBoardName(trelloData.boardName);
+          if (trelloData.lists && trelloData.lists.length > 0) setLists(trelloData.lists);
+          if (trelloData.cards && trelloData.cards.length > 0) {
+            setCards(trelloData.cards);
+            saveBoardCards(trelloData.cards);
+          } else {
+            setCards(loadBoardCards());
           }
-        })
-        .catch(() => {
-          // Normal sandbox/board mode
-        });
+          setMembers(getAllAvailableMembers());
+          setIsTrelloSynced(true);
+          setLoading(false);
+
+          // If opened on a specific Trello card (e.g. card button or card back section)
+          if (typeof t.card === "function") {
+            try {
+              const currentTrelloCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due");
+              if (currentTrelloCard && currentTrelloCard.id) {
+                const matchedCard = (trelloData.cards || []).find((c) => c.id === currentTrelloCard.id) || {
+                  id: currentTrelloCard.id,
+                  listId: currentTrelloCard.idList || (trelloData.lists[0]?.id || "list-1"),
+                  title: currentTrelloCard.name || "Card Workflow",
+                  description: currentTrelloCard.desc || "",
+                  assignees: currentTrelloCard.idMembers || [],
+                  labels: (currentTrelloCard.labels || []).map((l) => ({ name: l.name || l.color, color: l.color })),
+                  due: currentTrelloCard.due,
+                };
+                setSelectedCard(matchedCard);
+              }
+            } catch (e) {
+              console.warn("Could not read active card context:", e);
+            }
+          }
+          return;
+        }
+      }
+
+      // 2. Fallback to LocalStorage data for standalone dev mode
+      if (isMounted) {
+        const localCards = loadBoardCards();
+        setCards(localCards);
+        setLists(INITIAL_BOARD_LISTS);
+        setMembers(getAllAvailableMembers());
+        setLoading(false);
+      }
     }
 
-    // Auto-size Trello modal/iframe if supported
+    initData();
+
+    // Auto-size Trello modal if supported
     if (t && typeof t.sizeTo === "function") {
       t.sizeTo("#root").catch(() => {});
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [t]);
 
   // Save cards when updated
@@ -97,12 +132,14 @@ export default function CanvasApp({ t }) {
       <header className="proc-top-header">
         <div className="proc-top-header-left">
           <div className="proc-app-logo">
-            <ProcessIcon width={20} height={20} />
+            <ProcessIcon width={22} height={22} />
           </div>
           <div className="proc-header-titles">
             <div className="proc-board-title-row">
-              <h1 className="proc-board-title">Process & Workflow Board</h1>
-              <span className="proc-powerup-badge">⚡ Process Power-Up</span>
+              <h1 className="proc-board-title">{boardName}</h1>
+              <span className="proc-powerup-badge">
+                {isTrelloSynced ? "⚡ Live Trello Sync" : "⚡ Process Power-Up"}
+              </span>
             </div>
             <p className="proc-board-subtitle">
               Select any card to configure multi-step processes, assignees, blockers & hold reasons.
@@ -116,7 +153,7 @@ export default function CanvasApp({ t }) {
             <span className="proc-search-icon">🔍</span>
             <input
               type="text"
-              placeholder="Search cards or processes..."
+              placeholder="Search cards..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="proc-search-input"
@@ -126,6 +163,7 @@ export default function CanvasApp({ t }) {
                 type="button"
                 className="proc-search-clear"
                 onClick={() => setSearchQuery("")}
+                title="Clear search"
               >
                 ✕
               </button>
@@ -140,9 +178,9 @@ export default function CanvasApp({ t }) {
               title="Filter cards by member"
             >
               <option value="all">All Members</option>
-              {TEAM_MEMBERS.map((m) => (
+              {members.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.name} ({m.initials})
+                  {m.name} {m.initials ? `(${m.initials})` : ""}
                 </option>
               ))}
             </select>
@@ -160,47 +198,54 @@ export default function CanvasApp({ t }) {
 
       {/* 2. KANBAN BOARD VIEW */}
       <main className="proc-board-canvas custom-slim-scrollbar">
-        <div className="proc-board-columns">
-          {INITIAL_BOARD_LISTS.map((list) => {
-            const listCards = filteredCards.filter((c) => c.listId === list.id);
+        {loading ? (
+          <div className="proc-loading-state">
+            <div className="proc-spinner"></div>
+            <span>Loading board data...</span>
+          </div>
+        ) : (
+          <div className="proc-board-columns">
+            {lists.map((list) => {
+              const listCards = filteredCards.filter((c) => c.listId === list.id);
 
-            return (
-              <div key={list.id} className="proc-board-column">
-                <div className="proc-column-header">
-                  <div className="proc-column-title-group">
-                    <h3 className="proc-column-title">{list.title}</h3>
-                    <span className="proc-column-count">{listCards.length}</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="proc-column-add-btn"
-                    onClick={() => setShowAddCardModal(true)}
-                    title={`Add card to ${list.title}`}
-                  >
-                    +
-                  </button>
-                </div>
-
-                <div className="proc-column-cards custom-slim-scrollbar">
-                  {listCards.length === 0 ? (
-                    <div className="proc-column-empty">
-                      <span>No cards in this list</span>
+              return (
+                <div key={list.id} className="proc-board-column">
+                  <div className="proc-column-header">
+                    <div className="proc-column-title-group">
+                      <h3 className="proc-column-title">{list.title}</h3>
+                      <span className="proc-column-count">{listCards.length}</span>
                     </div>
-                  ) : (
-                    listCards.map((card) => (
-                      <BoardCard
-                        key={card.id}
-                        card={card}
-                        onSelectCard={(c) => setSelectedCard(c)}
-                        t={t}
-                      />
-                    ))
-                  )}
+                    <button
+                      type="button"
+                      className="proc-column-add-btn"
+                      onClick={() => setShowAddCardModal(true)}
+                      title={`Add card to ${list.title}`}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <div className="proc-column-cards custom-slim-scrollbar">
+                    {listCards.length === 0 ? (
+                      <div className="proc-column-empty">
+                        <span>No cards in this list</span>
+                      </div>
+                    ) : (
+                      listCards.map((card) => (
+                        <BoardCard
+                          key={card.id}
+                          card={card}
+                          onSelectCard={(c) => setSelectedCard(c)}
+                          t={t}
+                        />
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </main>
 
       {/* 3. CARD DETAIL MODAL (With Embedded Process Power-Up for the Selected Card) */}
@@ -209,7 +254,7 @@ export default function CanvasApp({ t }) {
           card={selectedCard}
           onClose={() => {
             setSelectedCard(null);
-            // Refresh cards to update card badge counters on the board
+            // Re-read storage/cards so any badge updates show immediately on board cards
             setCards([...loadBoardCards()]);
           }}
           onDeleteCard={handleDeleteCard}
@@ -222,6 +267,8 @@ export default function CanvasApp({ t }) {
         isOpen={showAddCardModal}
         onClose={() => setShowAddCardModal(false)}
         onAddCard={handleAddCard}
+        lists={lists}
+        members={members}
       />
     </div>
   );

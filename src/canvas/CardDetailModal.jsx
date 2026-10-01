@@ -111,6 +111,7 @@ export default function CardDetailModal({
             <ProcessPowerUp
               cardId={card.id}
               cardTitle={card.title}
+              cardDescription={card.description}
               t={t}
             />
           </div>

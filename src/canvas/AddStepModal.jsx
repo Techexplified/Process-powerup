@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TEAM_MEMBERS } from "../lib/processStore.js";
+import { getAllAvailableMembers } from "../lib/processStore.js";
 
 export default function AddStepModal({ isOpen, onClose, onAddStep }) {
   const [name, setName] = useState("");
@@ -115,7 +115,7 @@ export default function AddStepModal({ isOpen, onClose, onAddStep }) {
             <div className="proc-form-group">
               <label className="proc-form-label">Tag People (Optional)</label>
               <div className="proc-members-picker">
-                {TEAM_MEMBERS.map((member) => {
+                {getAllAvailableMembers().map((member) => {
                   const isSelected = selectedAssignees.includes(member.id);
                   return (
                     <button

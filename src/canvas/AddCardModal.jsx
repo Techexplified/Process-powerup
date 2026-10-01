@@ -1,11 +1,18 @@
 import React, { useState } from "react";
-import { INITIAL_BOARD_LISTS, TEAM_MEMBERS } from "../lib/processStore.js";
+import { INITIAL_BOARD_LISTS, getAllAvailableMembers } from "../lib/processStore.js";
 
-export default function AddCardModal({ isOpen, onClose, onAddCard }) {
+export default function AddCardModal({
+  isOpen,
+  onClose,
+  onAddCard,
+  lists = INITIAL_BOARD_LISTS,
+  members = null,
+}) {
+  const availableMembers = members || getAllAvailableMembers();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [listId, setListId] = useState(INITIAL_BOARD_LISTS[0].id);
-  const [selectedAssignees, setSelectedAssignees] = useState(["SC"]);
+  const [listId, setListId] = useState(lists[0]?.id || "list-1");
+  const [selectedAssignees, setSelectedAssignees] = useState([]);
   const [error, setError] = useState("");
 
   if (!isOpen) return null;
@@ -96,7 +103,7 @@ export default function AddCardModal({ isOpen, onClose, onAddCard }) {
                 value={listId}
                 onChange={(e) => setListId(e.target.value)}
               >
-                {INITIAL_BOARD_LISTS.map((list) => (
+                {lists.map((list) => (
                   <option key={list.id} value={list.id}>
                     {list.title}
                   </option>
@@ -118,7 +125,7 @@ export default function AddCardModal({ isOpen, onClose, onAddCard }) {
             <div className="proc-form-group">
               <label className="proc-form-label">Members (Optional)</label>
               <div className="proc-members-picker">
-                {TEAM_MEMBERS.map((member) => {
+                {availableMembers.map((member) => {
                   const isSelected = selectedAssignees.includes(member.id);
                   return (
                     <button
