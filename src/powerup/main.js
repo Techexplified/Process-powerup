@@ -105,19 +105,36 @@ TrelloPowerUp.initialize({
     };
   },
 
-  // Card Badges: Shows step progress & hold alert on front of cards
-  "card-badges": async function () {
-    return [
-      {
-        text: "2/4 steps",
-        icon: ICON_URL,
-        color: "green",
-      },
-      {
-        text: "1 on hold",
-        color: "yellow",
-      },
-    ];
+  // Card Badges: Shows dynamic step progress & hold alert on front of cards
+  "card-badges": async function (t) {
+    try {
+      const processData = await t.get("card", "shared", "processData");
+      if (!processData || !processData.enabled || !processData.steps?.length) {
+        return [];
+      }
+      const total = processData.steps.length;
+      const done = processData.steps.filter((s) => s.status === "done").length;
+      const held = processData.steps.filter((s) => s.status === "held").length;
+
+      const badges = [
+        {
+          text: `${done}/${total} steps`,
+          icon: ICON_URL,
+          color: done === total ? "green" : "blue",
+        },
+      ];
+
+      if (held > 0) {
+        badges.push({
+          text: `${held} on hold`,
+          color: "yellow",
+        });
+      }
+
+      return badges;
+    } catch (e) {
+      return [];
+    }
   },
 });
 
