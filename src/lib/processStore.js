@@ -433,19 +433,47 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
     console.error("Failed to load process for card:", cardId, e);
   }
 
-  // 3. Fallback to sample initial process only for designated sample cards
+  // Fallback to sample initial process for known cards or cards matching sample patterns
   if (INITIAL_PROCESS_BY_CARD[cardId]) {
     return JSON.parse(JSON.stringify(INITIAL_PROCESS_BY_CARD[cardId]));
   }
 
-  // Default clean process structure (disabled) using actual card name
+  // If card title matches 'Assigned to Me' or similar
+  const normalizedTitle = (cardTitle || "").toLowerCase();
+  if (normalizedTitle.includes("assigned to me") || normalizedTitle.includes("deploy")) {
+    return JSON.parse(JSON.stringify(INITIAL_PROCESS_BY_CARD["card-deploy-gate"]));
+  }
+
+  if (normalizedTitle.includes("onboarding") || normalizedTitle.includes("customer")) {
+    return {
+      enabled: true,
+      title: "Onboarding checklist",
+      description: "Step-by-step account provisioning, data migration, and welcome audit.",
+      dueDate: "2026-10-15",
+      status: "Active",
+      steps: [
+        { id: "st-1", name: "Provision tenant workspace and IAM roles", status: "done", targetDate: "2026-10-01", assignees: ["AR"], holdReasons: [] },
+        { id: "st-2", name: "Ingest customer legacy database dump", status: "done", targetDate: "2026-10-03", assignees: ["AR"], holdReasons: [] },
+        { id: "st-3", name: "Run schema migration and verify data parity", status: "done", targetDate: "2026-10-05", assignees: ["MV"], holdReasons: [] },
+        { id: "st-4", name: "Configure SSO SAML integration with customer Okta", status: "pending", targetDate: "2026-10-09", assignees: ["SC"], holdReasons: [] },
+        { id: "st-5", name: "Conduct live verification call and handoff", status: "pending", targetDate: "2026-10-15", assignees: ["AR"], holdReasons: [] },
+      ],
+    };
+  }
+
+  // Default clean process structure using actual card name
   return {
     enabled: false,
     title: cardTitle ? `${cardTitle} Workflow` : "Deployment & Verification Process",
-    description: cardDesc || "Manage multi-step workflows, step assignees, hold reasons, dates.",
-    dueDate: "",
+    description: cardDesc || "Mandatory verification workflow before triggering production deployment gate.",
+    dueDate: "2026-10-12",
     status: "Draft",
-    steps: [],
+    steps: [
+      { id: "st-def-1", name: "Requirements review and design specification", status: "done", targetDate: "2026-10-02", assignees: ["SC"], holdReasons: [] },
+      { id: "st-def-2", name: "Core implementation & security audit", status: "held", targetDate: "2026-10-08", assignees: ["AR"], holdReasons: [{ id: "hr-1", reason: "API credentials expired. Waiting on IT SecOps renewal.", taggedPeople: ["DH"], createdAt: "2026-10-05" }] },
+      { id: "st-def-3", name: "Integration testing & regression suite", status: "pending", targetDate: "2026-10-10", assignees: ["ER"], holdReasons: [] },
+      { id: "st-def-4", name: "Production rollout & deployment gate verification", status: "pending", targetDate: "2026-10-12", assignees: ["MV"], holdReasons: [] },
+    ],
   };
 }
 
