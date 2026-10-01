@@ -1,47 +1,37 @@
 /* =========================================================================
-   PROCESS POWER-UP - COMPLETE OFFICIAL DESIGN SYSTEM (15+ YRS EXPERT POLISH)
-   Pixel-perfect match to official reference screenshots
+   PROCESS POWER-UP - DESIGN SYSTEM (TRELLO STYLE)
    ========================================================================= */
 
 :root {
-  --proc-bg-app: #0a0e16;
-  --proc-bg-modal: #101520;
-  --proc-bg-surface: #141b29;
-  --proc-bg-surface-hover: #1b2438;
-  --proc-bg-card: #151d2c;
-  --proc-bg-card-hover: #1a253a;
-  --proc-bg-card-selected: #162644;
-  --proc-bg-input: #0c111a;
-  --proc-bg-dialog: #121824;
+  --proc-bg-app: #101214;
+  --proc-bg-surface: #161a1d;
+  --proc-bg-surface-hover: #1c2127;
+  --proc-bg-card: #1c2127;
+  --proc-bg-card-hover: #22272e;
+  --proc-bg-input: #0e1113;
+  --proc-bg-menu: #1d2125;
 
   --proc-border: rgba(255, 255, 255, 0.08);
-  --proc-border-medium: rgba(255, 255, 255, 0.14);
-  --proc-border-selected: #2563eb;
-  --proc-border-held: #f59e0b;
-  --proc-border-done: #10b981;
+  --proc-border-hover: rgba(255, 255, 255, 0.16);
+  --proc-border-selected: #579dff;
 
-  --proc-text-white: #f8fafc;
-  --proc-text-main: #e2e8f0;
-  --proc-text-muted: #94a3b8;
-  --proc-text-dim: #64748b;
+  --proc-text-primary: #ffffff;
+  --proc-text-secondary: #9fadbc;
+  --proc-text-dim: #738496;
 
-  --proc-blue-primary: #2563eb;
-  --proc-blue-hover: #1d4ed8;
-  --proc-blue-pill-bg: #1e3a8a;
-  --proc-blue-pill-text: #60a5fa;
+  /* Status Colors */
+  --proc-status-blue: #579dff;
+  --proc-status-blue-bg: #0c2d6b;
+  --proc-status-amber: #e2b203;
+  --proc-status-amber-bg: #382800;
+  --proc-status-red: #f87171;
+  --proc-status-red-bg: #4a1313;
+  --proc-status-green: #4bce97;
+  --proc-status-green-bg: #164b35;
+  --proc-status-neutral: #8590a2;
+  --proc-status-neutral-bg: #22272b;
 
-  --proc-emerald: #10b981;
-  --proc-emerald-bg: rgba(16, 185, 129, 0.16);
-  --proc-emerald-border: rgba(16, 185, 129, 0.35);
-  --proc-emerald-text: #34d399;
-
-  --proc-amber: #f59e0b;
-  --proc-amber-bg: rgba(245, 158, 11, 0.16);
-  --proc-amber-card-bg: #271a06;
-  --proc-amber-border: rgba(245, 158, 11, 0.4);
-  --proc-amber-text: #fbbf24;
-
-  --proc-gray-track: #334155;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", Ubuntu, "Helvetica Neue", sans-serif;
 }
 
 * {
@@ -54,8 +44,10 @@ html, body {
   width: 100%;
   height: 100%;
   background: var(--proc-bg-app);
-  color: var(--proc-text-white);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--proc-text-primary);
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
 }
@@ -67,263 +59,305 @@ html, body {
   flex-direction: column;
 }
 
-/* Ultra Slim Smooth Scrollbar */
+/* Custom Slim Scrollbar */
 .custom-slim-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 .custom-slim-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .custom-slim-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
 }
 .custom-slim-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.28);
 }
 
-/* Main Modal App Wrapper */
 .proc-app-container {
-  display: flex;
-  flex-direction: column;
   width: 100%;
   height: 100%;
-  background: var(--proc-bg-app);
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 16px;
-}
-
-/* =========================================================================
-   1. SCREENSHOT 1: PROCESSES CARD PICKER MODAL
-   ========================================================================= */
-.proc-modal-app-card {
-  background: var(--proc-bg-modal);
-  border: 1px solid var(--proc-border-medium);
-  border-radius: 14px;
-  max-width: 780px;
-  width: 100%;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85);
+  background: var(--proc-bg-app);
   overflow: hidden;
 }
 
-/* Top Bar */
-.proc-modal-top-bar {
-  padding: 16px 20px 14px;
+/* =========================================================================
+   PHASE 1: PICKER SCREEN (CARD SELECTION)
+   ========================================================================= */
+
+.proc-picker-screen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--proc-bg-app);
+  overflow: hidden;
+}
+
+/* Pinned Top Toolbar */
+.proc-picker-pinned-toolbar {
+  flex-shrink: 0;
+  padding: 16px 20px 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--proc-bg-app);
+}
+
+.proc-picker-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--proc-border);
+  margin-bottom: 12px;
 }
 
-.proc-modal-brand-col {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.proc-modal-brand-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: #1e3a8a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #60a5fa;
-  flex-shrink: 0;
-}
-
-.proc-modal-heading {
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff;
+.proc-picker-subtext {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--proc-text-secondary);
   margin: 0;
-  letter-spacing: -0.1px;
 }
 
-.proc-modal-subtext {
-  font-size: 12px;
-  color: var(--proc-text-muted);
-  margin: 2px 0 0 0;
-}
-
-.proc-modal-status-col {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.proc-synced-pill {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--proc-emerald-text);
+.proc-synced-indicator {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--proc-status-green);
 }
 
 .proc-synced-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--proc-emerald);
+  background: var(--proc-status-green);
 }
 
-.proc-modal-close-icon {
-  background: transparent;
-  border: none;
-  color: var(--proc-text-dim);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 4px;
-}
-
-.proc-modal-close-icon:hover {
-  color: #ffffff;
-}
-
-/* Search and Member Filter Row */
-.proc-modal-filter-row {
-  padding: 12px 20px 8px;
+/* Search and Member Filter Bar */
+.proc-picker-filter-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.proc-modal-search-field {
+.proc-search-field {
   position: relative;
   flex: 1;
   display: flex;
   align-items: center;
 }
 
-.proc-modal-search-glass {
+.proc-search-icon {
   position: absolute;
-  left: 12px;
-  font-size: 12px;
+  left: 10px;
   color: var(--proc-text-dim);
   pointer-events: none;
 }
 
-.proc-modal-search-input {
+.proc-search-input {
   width: 100%;
-  height: 36px;
-  padding: 0 28px 0 34px;
+  height: 32px;
+  padding: 0 28px 0 32px;
   background: var(--proc-bg-input);
   border: 1px solid var(--proc-border);
-  border-radius: 8px;
-  color: var(--proc-text-white);
-  font-size: 12.5px;
+  border-radius: 4px;
+  color: var(--proc-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
   outline: none;
-  transition: all 0.15s;
+  transition: border-color 0.15s ease;
 }
 
-.proc-modal-search-input:focus {
-  border-color: var(--proc-blue-primary);
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+.proc-search-input:focus {
+  border-color: var(--proc-status-blue);
 }
 
-.proc-modal-search-clear-btn {
+.proc-search-clear {
   position: absolute;
-  right: 10px;
+  right: 8px;
   background: transparent;
   border: none;
   color: var(--proc-text-dim);
+  font-size: 12px;
   cursor: pointer;
-  font-size: 11px;
+  padding: 2px;
 }
 
-.proc-modal-member-dropdown {
-  flex-shrink: 0;
+.proc-search-clear:hover {
+  color: var(--proc-text-primary);
 }
 
-.proc-modal-member-select {
-  height: 36px;
-  padding: 0 12px;
+/* Member Filter Dropdown */
+.proc-member-filter-wrapper {
+  position: relative;
+}
+
+.proc-member-filter-btn {
+  height: 32px;
+  padding: 0 10px;
   background: var(--proc-bg-input);
   border: 1px solid var(--proc-border);
-  border-radius: 8px;
-  color: var(--proc-text-white);
-  font-size: 12px;
-  font-weight: 500;
-  outline: none;
-  cursor: pointer;
-}
-
-.proc-modal-member-select:focus {
-  border-color: var(--proc-blue-primary);
-}
-
-/* Filter Pills Row */
-.proc-modal-filter-pills-row {
-  padding: 6px 20px 14px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   gap: 8px;
-  overflow-x: auto;
-}
-
-.proc-pill-filter {
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--proc-border);
-  color: var(--proc-text-muted);
-  font-size: 12px;
-  font-weight: 600;
+  color: var(--proc-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
   cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.proc-member-filter-btn:hover {
+  border-color: var(--proc-border-hover);
+}
+
+.proc-filter-avatar-default {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #282e33;
+  color: var(--proc-text-secondary);
+  font-size: 9px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.proc-filter-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.proc-filter-member-name {
   white-space: nowrap;
-  transition: all 0.15s;
 }
 
-.proc-pill-filter:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+.proc-filter-chevron {
+  color: var(--proc-text-dim);
 }
 
-.proc-pill-filter.active {
-  background: #1e3a8a;
-  color: #93c5fd;
-  border-color: #2563eb;
+.proc-member-dropdown-menu {
+  position: absolute;
+  top: 36px;
+  right: 0;
+  min-width: 160px;
+  background: var(--proc-bg-menu);
+  border: 1px solid var(--proc-border-hover);
+  border-radius: 4px;
+  padding: 4px 0;
+  z-index: 100;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
-.proc-pill-filter.pill-amber {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
-  border-color: rgba(245, 158, 11, 0.35);
-}
-
-.proc-pill-filter.pill-amber.active {
-  background: #b45309;
-  color: #ffffff;
-}
-
-/* Lists Viewport */
-.proc-modal-lists-viewport {
-  padding: 4px 20px 20px;
+.proc-member-menu-item {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-  max-height: 520px;
-  overflow-y: auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: var(--proc-text-primary);
+  cursor: pointer;
 }
 
-.proc-list-accordion-group {
+.proc-member-menu-item:hover {
+  background: var(--proc-bg-surface-hover);
+}
+
+.proc-member-menu-item.selected {
+  color: var(--proc-status-blue);
+  font-weight: 500;
+}
+
+/* Filter Pills Row - 12px bottom spacing */
+.proc-filter-pills-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 6px;
+  margin-bottom: 12px;
+  overflow-x: hidden;
+  flex-wrap: wrap;
 }
 
-.proc-list-accordion-header {
+.proc-pill-btn {
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: var(--proc-status-neutral-bg);
+  border: 1px solid var(--proc-border);
+  color: var(--proc-text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.proc-pill-btn:hover {
+  background: var(--proc-bg-surface-hover);
+  color: var(--proc-text-primary);
+}
+
+.proc-pill-btn.active {
+  background: var(--proc-status-blue-bg);
+  border-color: var(--proc-status-blue);
+  color: #cce0ff;
+}
+
+.proc-pill-btn.pill-amber.active {
+  background: var(--proc-status-amber-bg);
+  border-color: var(--proc-status-amber);
+  color: #fae17d;
+}
+
+/* Empty State Banner */
+.proc-empty-banner {
+  padding: 8px 12px;
+  background: var(--proc-bg-surface);
+  border: 1px dashed var(--proc-border-hover);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--proc-text-secondary);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* Single Scroll Container for the List */
+.proc-picker-list-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.proc-list-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* List Accordion Header */
+.proc-list-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 4px;
+  padding: 4px 2px;
   cursor: pointer;
   user-select: none;
 }
@@ -331,240 +365,250 @@ html, body {
 .proc-list-header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
-.proc-accordion-caret {
-  font-size: 9px;
+.proc-list-chevron {
   color: var(--proc-text-dim);
+  display: flex;
+  align-items: center;
 }
 
-.proc-accordion-list-icon {
+.proc-list-title {
   font-size: 13px;
+  font-weight: 500;
+  color: var(--proc-text-primary);
 }
 
-.proc-accordion-list-name {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.proc-accordion-list-meta {
-  font-size: 11.5px;
+.proc-list-count-meta {
+  font-size: 12px;
   color: var(--proc-text-dim);
 }
 
 .proc-list-header-right {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.proc-list-badge-held {
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--proc-amber-bg);
-  color: var(--proc-amber-text);
-  border: 1px solid var(--proc-amber-border);
-}
-
-.proc-list-badge-complete {
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--proc-emerald-bg);
-  color: var(--proc-emerald-text);
-  border: 1px solid var(--proc-emerald-border);
-}
-
-/* Card Rows Table */
-.proc-list-cards-table {
-  display: flex;
-  flex-direction: column;
   gap: 6px;
 }
 
-.proc-card-row-item {
+/* Status Pills */
+.proc-status-pill {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.proc-status-pill.pill-amber {
+  background: var(--proc-status-amber-bg);
+  color: var(--proc-status-amber);
+}
+
+.proc-status-pill.pill-in-progress {
+  background: var(--proc-status-blue-bg);
+  color: var(--proc-status-blue);
+}
+
+.proc-status-pill.pill-done {
+  background: var(--proc-status-green-bg);
+  color: var(--proc-status-green);
+}
+
+/* List Items Container */
+.proc-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Row Type 1: Card WITH Process */
+.proc-row-with-process {
   background: var(--proc-bg-card);
   border: 1px solid var(--proc-border);
-  border-radius: 9px;
-  padding: 10px 14px;
+  border-radius: 6px;
+  padding: 8px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.12s ease;
 }
 
-.proc-card-row-item:hover {
+.proc-row-with-process:hover {
   background: var(--proc-bg-card-hover);
-  border-color: var(--proc-border-medium);
+  border-color: var(--proc-border-hover);
 }
 
-.proc-card-row-item.has-process {
-  border-color: rgba(37, 99, 235, 0.4);
-  background: var(--proc-bg-card-selected);
-}
-
-.proc-card-row-left {
+.proc-row-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
   flex: 1;
 }
 
-.proc-card-row-icon {
-  color: #60a5fa;
+.proc-card-doc-icon {
+  color: var(--proc-text-dim);
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
 }
 
-.proc-card-row-text {
+.proc-card-cover-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.proc-row-text {
   min-width: 0;
   flex: 1;
 }
 
-.proc-card-row-title {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #ffffff;
+.proc-row-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--proc-text-primary);
   margin: 0;
-  line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.proc-card-row-progress-line {
+.proc-row-subline {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 3px;
-  flex-wrap: wrap;
+  margin-top: 2px;
 }
 
-.proc-proc-name-sub {
-  font-size: 11.5px;
-  color: var(--proc-text-muted);
+.proc-proc-title {
+  font-size: 12px;
+  color: var(--proc-text-secondary);
 }
 
-.proc-mini-segmented-bar {
+.proc-mini-progress-bar {
   display: flex;
   align-items: center;
   gap: 3px;
 }
 
-.proc-mini-dash {
-  width: 14px;
-  height: 4px;
-  border-radius: 999px;
+.proc-mini-seg {
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
 }
 
-.dash-done { background: var(--proc-emerald); }
-.dash-held { background: var(--proc-amber); }
-.dash-todo { background: var(--proc-gray-track); }
+.seg-done { background: var(--proc-status-green); }
+.seg-held { background: var(--proc-status-amber); }
+.seg-todo { background: var(--proc-status-neutral); }
 
-.proc-proc-frac {
-  font-size: 11px;
-  font-weight: 600;
+.proc-frac-label {
+  font-size: 12px;
+  font-weight: 500;
   color: var(--proc-text-dim);
 }
 
-.proc-card-row-no-proc {
-  font-size: 11.5px;
-  color: var(--proc-text-dim);
-  font-style: italic;
-  display: block;
-  margin-top: 2px;
-}
-
-.proc-card-row-right {
+.proc-row-right {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
 
-.proc-row-pill-held {
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--proc-amber-bg);
-  color: var(--proc-amber-text);
-  border: 1px solid var(--proc-amber-border);
-}
-
-.proc-row-pill-progress {
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: #1e3a8a;
-  color: #93c5fd;
-  border: 1px solid #2563eb;
-}
-
-.proc-row-pill-complete {
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--proc-emerald-bg);
-  color: var(--proc-emerald-text);
-  border: 1px solid var(--proc-emerald-border);
-}
-
-.proc-row-avatar {
-  width: 22px;
-  height: 22px;
+.proc-member-avatar-chip {
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  font-size: 9.5px;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.proc-row-chevron {
+.proc-row-chevron-icon {
   color: var(--proc-text-dim);
-  font-size: 14px;
 }
 
-.proc-btn-setup-outline {
-  background: transparent;
-  border: 1px solid var(--proc-border-medium);
-  color: #cbd5e1;
+/* Row Type 2: Card WITHOUT Process (Single line, ~44px) */
+.proc-row-no-process {
+  height: 44px;
+  background: var(--proc-bg-card);
+  border: 1px solid var(--proc-border);
   border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 11.5px;
-  font-weight: 600;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.12s ease;
 }
 
-.proc-btn-setup-outline:hover {
-  border-color: var(--proc-blue-primary);
-  color: #ffffff;
-  background: rgba(37, 99, 235, 0.15);
+.proc-row-no-process:hover {
+  background: var(--proc-bg-card-hover);
+  border-color: var(--proc-border-hover);
 }
 
-.proc-btn-show-more {
+.proc-row-title-single {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--proc-text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.proc-untitled-fallback {
+  font-style: italic;
+  color: var(--proc-text-secondary);
+}
+
+.proc-no-proc-subtext {
+  font-size: 12px;
+  color: var(--proc-text-dim);
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.proc-btn-setup-ghost {
+  background: transparent;
+  border: 1px solid var(--proc-border);
+  color: var(--proc-text-secondary);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.proc-btn-setup-ghost:hover {
+  background: var(--proc-bg-surface-hover);
+  border-color: var(--proc-border-hover);
+  color: var(--proc-text-primary);
+}
+
+.proc-show-more-link {
   background: transparent;
   border: none;
-  color: #60a5fa;
-  font-size: 11.5px;
-  font-weight: 600;
+  color: var(--proc-status-blue);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   text-align: left;
-  padding: 4px 6px;
+  padding: 4px 2px;
 }
 
-.proc-btn-show-more:hover {
+.proc-show-more-link:hover {
   text-decoration: underline;
 }
 

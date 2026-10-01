@@ -4,7 +4,38 @@ import {
   calculateProcessStats,
   getMemberById,
 } from "../lib/processStore.js";
-import { ProcessIcon } from "../lib/icons.jsx";
+import {
+  SearchIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+} from "../lib/icons.jsx";
+
+function getDisplayTitle(title) {
+  if (!title) return null;
+  const trimmed = title.trim();
+  if (!trimmed) return null;
+  const hasLettersOrDigits = /[\p{L}\p{N}]/u.test(trimmed);
+  if (!hasLettersOrDigits) {
+    return null;
+  }
+  return trimmed;
+}
+
+function CardThumbnail({ card }) {
+  if (card.coverUrl) {
+    return <img src={card.coverUrl} alt="" className="proc-card-cover-thumb" />;
+  }
+  return (
+    <div className="proc-card-doc-icon">
+      <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+      </svg>
+    </div>
+  );
+}
 
 export default function ProcessMainModal({
   boardName = "My Trello board",
@@ -17,10 +48,22 @@ export default function ProcessMainModal({
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMember, setSelectedMember] = useState("all");
+  const [isMemberMenuOpen, setIsMemberMenuOpen] = useState(false);
   const [filterMode, setFilterMode] = useState("all"); // 'all' | 'with_process' | 'no_process' | 'on_hold'
   const [cardProcesses, setCardProcesses] = useState({});
   const [collapsedLists, setCollapsedLists] = useState({});
   const [expandedCardLimits, setExpandedCardLimits] = useState({});
+
+  // Expand only first list by default
+  useEffect(() => {
+    if (lists.length > 0) {
+      const initialCollapsed = {};
+      lists.slice(1).forEach((l) => {
+        initialCollapsed[l.id] = true;
+      });
+      setCollapsedLists(initialCollapsed);
+    }
+  }, [lists]);
 
   // Load processes for all board cards
   useEffect(() => {
@@ -101,119 +144,152 @@ export default function ProcessMainModal({
     return true;
   });
 
-  return (
-    <div className="proc-modal-app-card">
-      {/* 1. MODAL TOP HEADER */}
-      <div className="proc-modal-top-bar">
-        <div className="proc-modal-brand-col">
-          <div className="proc-modal-brand-icon">
-            <ProcessIcon width={20} height={20} />
-          </div>
-          <div>
-            <h2 className="proc-modal-heading">Processes</h2>
-            <p className="proc-modal-subtext">
-              Pick a card to view or set up its process.
-            </p>
-          </div>
-        </div>
+  const selectedMemberObj = selectedMember === "all" ? null : members.find((m) => m.id === selectedMember);
 
-        <div className="proc-modal-status-col">
-          <span className="proc-synced-pill">
+  return (
+    <div className="proc-picker-screen">
+      {/* PINNED TOP TOOLBAR */}
+      <div className="proc-picker-pinned-toolbar">
+        {/* Subtitle and Synced row (no double frame/inner title/inner X) */}
+        <div className="proc-picker-header-row">
+          <p className="proc-picker-subtext">
+            Pick a card to view or set up its process.
+          </p>
+          <span className="proc-synced-indicator">
             <span className="proc-synced-dot"></span> Synced
           </span>
-          <button
-            type="button"
-            className="proc-modal-close-icon"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            ✕
-          </button>
         </div>
-      </div>
 
-      {/* 2. SEARCH & MEMBER FILTER BAR */}
-      <div className="proc-modal-filter-row">
-        <div className="proc-modal-search-field">
-          <span className="proc-modal-search-glass">🔍</span>
-          <input
-            type="text"
-            placeholder="Search cards"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="proc-modal-search-input"
-          />
-          {searchQuery && (
+        {/* Search & Member Filter Bar */}
+        <div className="proc-picker-filter-row">
+          <div className="proc-search-field">
+            <SearchIcon width={14} height={14} className="proc-search-icon" />
+            <input
+              type="text"
+              placeholder="Search cards"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="proc-search-input"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="proc-search-clear"
+                onClick={() => setSearchQuery("")}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="proc-member-filter-wrapper">
             <button
               type="button"
-              className="proc-modal-search-clear-btn"
-              onClick={() => setSearchQuery("")}
+              className="proc-member-filter-btn"
+              onClick={() => setIsMemberMenuOpen(!isMemberMenuOpen)}
             >
-              ✕
+              {selectedMemberObj ? (
+                <span
+                  className="proc-filter-avatar"
+                  style={{ background: selectedMemberObj.bg, color: selectedMemberObj.text }}
+                >
+                  {selectedMemberObj.initials}
+                </span>
+              ) : (
+                <span className="proc-filter-avatar-default">SB</span>
+              )}
+              <span className="proc-filter-member-name">
+                {selectedMemberObj ? selectedMemberObj.name : "Anyone"}
+              </span>
+              <ChevronDownIcon width={12} height={12} className="proc-filter-chevron" />
             </button>
-          )}
+
+            {isMemberMenuOpen && (
+              <div className="proc-member-dropdown-menu">
+                <div
+                  className={`proc-member-menu-item ${selectedMember === "all" ? "selected" : ""}`}
+                  onClick={() => {
+                    setSelectedMember("all");
+                    setIsMemberMenuOpen(false);
+                  }}
+                >
+                  <span className="proc-filter-avatar-default">SB</span>
+                  <span>Anyone</span>
+                </div>
+                {members.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`proc-member-menu-item ${selectedMember === m.id ? "selected" : ""}`}
+                    onClick={() => {
+                      setSelectedMember(m.id);
+                      setIsMemberMenuOpen(false);
+                    }}
+                  >
+                    <span
+                      className="proc-filter-avatar"
+                      style={{ background: m.bg, color: m.text }}
+                    >
+                      {m.initials}
+                    </span>
+                    <span>{m.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="proc-modal-member-dropdown">
-          <select
-            className="proc-modal-member-select"
-            value={selectedMember}
-            onChange={(e) => setSelectedMember(e.target.value)}
+        {/* Filter Pills */}
+        <div className="proc-filter-pills-row">
+          <button
+            type="button"
+            className={`proc-pill-btn ${filterMode === "all" ? "active" : ""}`}
+            onClick={() => setFilterMode("all")}
           >
-            <option value="all">👤 Anyone</option>
-            {members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name} {m.initials ? `(${m.initials})` : ""}
-              </option>
-            ))}
-          </select>
+            All {totalCardsCount}
+          </button>
+          <button
+            type="button"
+            className={`proc-pill-btn ${filterMode === "with_process" ? "active" : ""}`}
+            onClick={() => setFilterMode("with_process")}
+          >
+            With process {withProcessCount}
+          </button>
+          <button
+            type="button"
+            className={`proc-pill-btn ${filterMode === "no_process" ? "active" : ""}`}
+            onClick={() => setFilterMode("no_process")}
+          >
+            No process {noProcessCount}
+          </button>
+          <button
+            type="button"
+            className={`proc-pill-btn pill-amber ${filterMode === "on_hold" ? "active" : ""}`}
+            onClick={() => setFilterMode("on_hold")}
+          >
+            On hold {onHoldCount}
+          </button>
         </div>
+
+        {/* Empty State Banner if no cards on board have a process */}
+        {withProcessCount === 0 && (
+          <div className="proc-empty-banner">
+            No processes yet. Pick a card and tap Set up.
+          </div>
+        )}
       </div>
 
-      {/* 3. FILTER PILLS */}
-      <div className="proc-modal-filter-pills-row">
-        <button
-          type="button"
-          className={`proc-pill-filter ${filterMode === "all" ? "active" : ""}`}
-          onClick={() => setFilterMode("all")}
-        >
-          All {totalCardsCount}
-        </button>
-        <button
-          type="button"
-          className={`proc-pill-filter ${filterMode === "with_process" ? "active" : ""}`}
-          onClick={() => setFilterMode("with_process")}
-        >
-          With process {withProcessCount}
-        </button>
-        <button
-          type="button"
-          className={`proc-pill-filter ${filterMode === "no_process" ? "active" : ""}`}
-          onClick={() => setFilterMode("no_process")}
-        >
-          No process {noProcessCount}
-        </button>
-        <button
-          type="button"
-          className={`proc-pill-filter pill-amber ${filterMode === "on_hold" ? "active" : ""}`}
-          onClick={() => setFilterMode("on_hold")}
-        >
-          On hold {onHoldCount}
-        </button>
-      </div>
-
-      {/* 4. COLLAPSIBLE LIST SECTIONS */}
-      <div className="proc-modal-lists-viewport custom-slim-scrollbar">
+      {/* SINGLE SCROLL CONTAINER FOR THE LIST */}
+      <div className="proc-picker-list-container custom-slim-scrollbar">
         {lists.map((list) => {
           const listCards = filteredCards.filter((c) => c.listId === list.id);
           if (listCards.length === 0 && filterMode !== "all") return null;
 
-          const isCollapsed = collapsedLists[list.id];
+          const isCollapsed = Boolean(collapsedLists[list.id]);
           const visibleLimit = expandedCardLimits[list.id] || 4;
           const visibleCards = listCards.slice(0, visibleLimit);
           const hasMore = listCards.length > visibleLimit;
 
-          // Compute list specific process stats
           let listWithProcess = 0;
           let listOnHold = 0;
           let listComplete = 0;
@@ -230,40 +306,43 @@ export default function ProcessMainModal({
           });
 
           return (
-            <div key={list.id} className="proc-list-accordion-group">
-              {/* List Accordion Header */}
+            <div key={list.id} className="proc-list-group">
+              {/* Group Header */}
               <div
-                className="proc-list-accordion-header"
+                className="proc-list-header"
                 onClick={() => toggleCollapseList(list.id)}
               >
                 <div className="proc-list-header-left">
-                  <span className="proc-accordion-caret">
-                    {isCollapsed ? "▶" : "▼"}
+                  <span className="proc-list-chevron">
+                    {isCollapsed ? (
+                      <ChevronRightIcon width={12} height={12} />
+                    ) : (
+                      <ChevronDownIcon width={12} height={12} />
+                    )}
                   </span>
-                  <span className="proc-accordion-list-icon">📋</span>
-                  <span className="proc-accordion-list-name">{list.title}</span>
-                  <span className="proc-accordion-list-meta">
+                  <span className="proc-list-title">{list.title}</span>
+                  <span className="proc-list-count-meta">
                     {listCards.length} cards · {listWithProcess} with process
                   </span>
                 </div>
 
                 <div className="proc-list-header-right">
                   {listOnHold > 0 && (
-                    <span className="proc-list-badge-held">
+                    <span className="proc-status-pill pill-amber">
                       {listOnHold} on hold
                     </span>
                   )}
                   {listComplete > 0 && (
-                    <span className="proc-list-badge-complete">
+                    <span className="proc-status-pill pill-done">
                       {listComplete} complete
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* Cards Inside List */}
+              {/* Group Cards */}
               {!isCollapsed && (
-                <div className="proc-list-cards-table">
+                <div className="proc-list-items">
                   {visibleCards.map((card) => {
                     const proc = cardProcesses[card.id];
                     const hasProc = Boolean(
@@ -272,99 +351,109 @@ export default function ProcessMainModal({
                     const stats = hasProc ? calculateProcessStats(proc.steps) : null;
                     const isHeld = stats && stats.held > 0;
                     const isAllDone = stats && stats.done === stats.total;
+                    const displayTitle = getDisplayTitle(card.title);
 
-                    return (
-                      <div
-                        key={card.id}
-                        className={`proc-card-row-item ${hasProc ? "has-process" : ""}`}
-                        onClick={() => onSelectCard(card)}
-                      >
-                        <div className="proc-card-row-left">
-                          <div className="proc-card-row-icon">
-                            <ProcessIcon width={16} height={16} />
-                          </div>
-
-                          <div className="proc-card-row-text">
-                            <h4 className="proc-card-row-title">{card.title}</h4>
-
-                            {hasProc ? (
-                              <div className="proc-card-row-progress-line">
-                                <span className="proc-proc-name-sub">
+                    // Row Type 1: Card WITH a process
+                    if (hasProc) {
+                      return (
+                        <div
+                          key={card.id}
+                          className="proc-row-with-process"
+                          onClick={() => onSelectCard(card)}
+                        >
+                          <div className="proc-row-left">
+                            <CardThumbnail card={card} />
+                            <div className="proc-row-text">
+                              <h4 className="proc-row-title">
+                                {displayTitle || <span className="proc-untitled-fallback">Untitled card</span>}
+                              </h4>
+                              <div className="proc-row-subline">
+                                <span className="proc-proc-title">
                                   {proc.title || "Deployment and verification"}
                                 </span>
-                                {/* Segmented Mini Progress Bar */}
-                                <div className="proc-mini-segmented-bar">
+                                <div className="proc-mini-progress-bar">
                                   {proc.steps.map((st, sIdx) => (
                                     <span
                                       key={st.id || sIdx}
-                                      className={`proc-mini-dash ${
+                                      className={`proc-mini-seg ${
                                         st.status === "done"
-                                          ? "dash-done"
+                                          ? "seg-done"
                                           : st.status === "held"
-                                          ? "dash-held"
-                                          : "dash-todo"
+                                          ? "seg-held"
+                                          : "seg-todo"
                                       }`}
                                     />
                                   ))}
                                 </div>
-                                <span className="proc-proc-frac">
+                                <span className="proc-frac-label">
                                   {stats.done}/{stats.total}
                                 </span>
                               </div>
-                            ) : (
-                              <span className="proc-card-row-no-proc">
-                                No process yet
+                            </div>
+                          </div>
+
+                          <div className="proc-row-right">
+                            {isHeld && (
+                              <span className="proc-status-pill pill-amber">
+                                {stats.held} on hold
                               </span>
                             )}
+                            {!isHeld && !isAllDone && (
+                              <span className="proc-status-pill pill-in-progress">
+                                In progress
+                              </span>
+                            )}
+                            {isAllDone && (
+                              <span className="proc-status-pill pill-done">
+                                Complete
+                              </span>
+                            )}
+
+                            {card.assignees && card.assignees.length > 0 && (
+                              <span
+                                className="proc-member-avatar-chip"
+                                style={{
+                                  background: getMemberById(card.assignees[0]).bg,
+                                  color: getMemberById(card.assignees[0]).text,
+                                }}
+                                title={getMemberById(card.assignees[0]).name}
+                              >
+                                {getMemberById(card.assignees[0]).initials}
+                              </span>
+                            )}
+
+                            <ChevronRightIcon width={14} height={14} className="proc-row-chevron-icon" />
                           </div>
                         </div>
+                      );
+                    }
 
-                        <div className="proc-card-row-right">
-                          {hasProc ? (
-                            <>
-                              {isHeld && (
-                                <span className="proc-row-pill-held">
-                                  {stats.held} on hold
-                                </span>
-                              )}
-                              {!isHeld && !isAllDone && (
-                                <span className="proc-row-pill-progress">
-                                  In progress
-                                </span>
-                              )}
-                              {isAllDone && (
-                                <span className="proc-row-pill-complete">
-                                  Complete
-                                </span>
-                              )}
+                    // Row Type 2: Card WITHOUT a process (Single line ~44px, quiet Set up ghost button)
+                    return (
+                      <div
+                        key={card.id}
+                        className="proc-row-no-process"
+                        onClick={() => onSelectCard(card)}
+                      >
+                        <div className="proc-row-left">
+                          <CardThumbnail card={card} />
+                          <h4 className="proc-row-title-single">
+                            {displayTitle || <span className="proc-untitled-fallback">Untitled card</span>}
+                          </h4>
+                          <span className="proc-no-proc-subtext">No process yet</span>
+                        </div>
 
-                              {card.assignees && card.assignees.length > 0 && (
-                                <span
-                                  className="proc-row-avatar"
-                                  style={{
-                                    background: getMemberById(card.assignees[0]).bg,
-                                    color: getMemberById(card.assignees[0]).text,
-                                  }}
-                                  title={getMemberById(card.assignees[0]).name}
-                                >
-                                  {getMemberById(card.assignees[0]).initials}
-                                </span>
-                              )}
-
-                              <span className="proc-row-chevron">›</span>
-                            </>
-                          ) : (
-                            <button
-                              type="button"
-                              className="proc-btn-setup-outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onSelectCard(card);
-                              }}
-                            >
-                              + Set up
-                            </button>
-                          )}
+                        <div className="proc-row-right">
+                          <button
+                            type="button"
+                            className="proc-btn-setup-ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectCard(card);
+                            }}
+                          >
+                            Set up
+                          </button>
                         </div>
                       </div>
                     );
@@ -373,7 +462,7 @@ export default function ProcessMainModal({
                   {hasMore && (
                     <button
                       type="button"
-                      className="proc-btn-show-more"
+                      className="proc-show-more-link"
                       onClick={() => showMoreForList(list.id)}
                     >
                       Show {listCards.length - visibleLimit} more
