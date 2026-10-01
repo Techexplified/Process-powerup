@@ -229,121 +229,105 @@ export default function ProcessDetailView({
     <div className="proc-detail-view">
       {/* SCROLLABLE MAIN CONTENT */}
       <div className="proc-detail-scroll-area custom-slim-scrollbar">
-        {/* 1. TOP BREADCRUMB NAVIGATION */}
-        {onBack && (
-          <div className="proc-top-nav-bar">
+        {/* 1. TOP NAV & ACTIONS BAR */}
+        <div className="proc-top-nav-bar">
+          {onBack ? (
             <button type="button" className="proc-btn-back-link" onClick={onBack}>
               ← Back to cards
             </button>
+          ) : (
+            <div className="proc-top-brand-label">
+              <ProcessIcon width={14} height={14} />
+              <span>PROCESSES</span>
+            </div>
+          )}
+
+          <div className="proc-top-right-actions">
+            <span className="proc-date-box-pill">
+              <CalendarIcon width={12} height={12} />
+              <span>{formattedDueDate}</span>
+            </span>
+
+            <button
+              type="button"
+              className={`proc-btn-enable-toggle ${isEnabled ? "enabled" : ""}`}
+              onClick={handleToggleProcessEnable}
+            >
+              {isEnabled ? "✓ Process Enabled" : "+ Enable Process / Task"}
+            </button>
+
+            <button
+              type="button"
+              className="proc-btn-delete-card-process"
+              onClick={handleToggleProcessEnable}
+              title="Disable workflow"
+            >
+              <TrashIcon width={14} height={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* 2. UNIFIED ACTIVE PROCESS & TELEMETRY CARD */}
+        {isEnabled && (
+          <div className="proc-active-process-card">
+            <div className="proc-active-heading-row">
+              <span className="proc-active-toggle-icon">
+                <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5">
+                  <rect x="2" y="6" width="20" height="12" rx="6" />
+                  <circle cx="16" cy="12" r="3.5" fill="#10b981" />
+                </svg>
+              </span>
+              <h3 className="proc-active-process-title">{displayTitle}</h3>
+              <span className="proc-tag-active">Active</span>
+            </div>
+
+            <p className="proc-active-process-desc">{displayDesc}</p>
+
+            {/* Progress Breakdown Row */}
+            <div className="proc-progress-stats-row">
+              <div className="proc-progress-label-col">
+                <span className="proc-progress-bold-txt">Progress: {stats.percent}%</span>
+                <span className="proc-progress-muted-txt">
+                  · {stats.done}/{stats.total} steps completed
+                </span>
+              </div>
+
+              <div className="proc-progress-pills-col">
+                {stats.held > 0 && (
+                  <span className="proc-stat-badge stat-amber">
+                    🟡 {stats.held} on hold
+                  </span>
+                )}
+                {stats.pending > 0 && (
+                  <span className="proc-stat-badge stat-red">
+                    🔴 {stats.pending} pending
+                  </span>
+                )}
+                {stats.done > 0 && (
+                  <span className="proc-stat-badge stat-green">
+                    🟢 {stats.done} done
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Segmented Progress Track */}
+            <div className="proc-segmented-progress-track">
+              {steps.map((s, idx) => (
+                <div
+                  key={s.id || idx}
+                  className={`proc-track-segment ${
+                    s.status === "done"
+                      ? "seg-green"
+                      : s.status === "held"
+                      ? "seg-amber"
+                      : "seg-gray"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         )}
-
-      {/* 2. POWER-UP HERO BANNER */}
-      <div className="proc-powerup-hero-banner">
-        <div className="proc-powerup-brand-col">
-          <div className="proc-powerup-badge-row">
-            <div className="proc-powerup-glyph-box">
-              <ProcessIcon width={16} height={16} />
-            </div>
-            <span className="proc-powerup-main-title">PROCESSES</span>
-            <span className="proc-powerup-tag-pill">Power-Up</span>
-          </div>
-          <p className="proc-powerup-tagline">
-            Manage multi-step workflows, step assignees, hold reasons, and dates.
-          </p>
-        </div>
-
-        <div className="proc-powerup-right-col">
-          <button
-            type="button"
-            className={`proc-btn-enable-toggle ${isEnabled ? "enabled" : ""}`}
-            onClick={handleToggleProcessEnable}
-          >
-            {isEnabled ? "✓ Process Enabled" : "+ Enable Process / Task"}
-          </button>
-        </div>
-      </div>
-
-      {/* 3. ACTIVE PROCESS CARD CONTAINER & PROGRESS BAR */}
-      {isEnabled && (
-        <div className="proc-active-process-card">
-          <div className="proc-active-process-top">
-            <div className="proc-active-toggle-icon">
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5">
-                <rect x="2" y="6" width="20" height="12" rx="6" />
-                <circle cx="16" cy="12" r="3.5" fill="#10b981" />
-              </svg>
-            </div>
-
-            <div className="proc-active-titles-col">
-              <div className="proc-active-heading-row">
-                <h3 className="proc-active-process-title">{displayTitle}</h3>
-                <span className="proc-tag-active">Active</span>
-              </div>
-              <p className="proc-active-process-desc">{displayDesc}</p>
-            </div>
-
-            <div className="proc-active-right-box">
-              <div className="proc-date-box-pill">
-                <CalendarIcon width={13} height={13} />
-                <span>{formattedDueDate}</span>
-              </div>
-              <button
-                type="button"
-                className="proc-btn-delete-card-process"
-                onClick={handleToggleProcessEnable}
-                title="Disable workflow"
-              >
-                <TrashIcon width={14} height={14} />
-              </button>
-            </div>
-          </div>
-
-          {/* Progress Breakdown Row */}
-          <div className="proc-progress-stats-row">
-            <div className="proc-progress-label-col">
-              <span className="proc-progress-bold-txt">Progress: {stats.percent}%</span>
-              <span className="proc-progress-muted-txt">
-                {stats.done}/{stats.total} steps completed
-              </span>
-            </div>
-
-            <div className="proc-progress-pills-col">
-              {stats.held > 0 && (
-                <span className="proc-stat-badge stat-amber">
-                  🟡 {stats.held} on hold
-                </span>
-              )}
-              {stats.pending > 0 && (
-                <span className="proc-stat-badge stat-red">
-                  🔴 {stats.pending} pending
-                </span>
-              )}
-              {stats.done > 0 && (
-                <span className="proc-stat-badge stat-green">
-                  🟢 {stats.done} done
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Segmented Progress Track */}
-          <div className="proc-segmented-progress-track">
-            {steps.map((s, idx) => (
-              <div
-                key={s.id || idx}
-                className={`proc-track-segment ${
-                  s.status === "done"
-                    ? "seg-green"
-                    : s.status === "held"
-                    ? "seg-amber"
-                    : "seg-gray"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* 4. STEP ITEMS LIST */}
       <div className="proc-steps-stack-container">
