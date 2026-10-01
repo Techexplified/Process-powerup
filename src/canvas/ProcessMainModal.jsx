@@ -5,9 +5,11 @@ import {
   getMemberById,
 } from "../lib/processStore.js";
 import {
+  ProcessIcon,
   SearchIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  CloseIcon,
 } from "../lib/icons.jsx";
 
 function getDisplayTitle(title) {
@@ -15,26 +17,8 @@ function getDisplayTitle(title) {
   const trimmed = title.trim();
   if (!trimmed) return null;
   const hasLettersOrDigits = /[\p{L}\p{N}]/u.test(trimmed);
-  if (!hasLettersOrDigits) {
-    return null;
-  }
+  if (!hasLettersOrDigits) return null;
   return trimmed;
-}
-
-function CardThumbnail({ card }) {
-  if (card.coverUrl) {
-    return <img src={card.coverUrl} alt="" className="proc-card-cover-thumb" />;
-  }
-  return (
-    <div className="proc-card-doc-icon">
-      <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-      </svg>
-    </div>
-  );
 }
 
 export default function ProcessMainModal({
@@ -150,14 +134,35 @@ export default function ProcessMainModal({
     <div className="proc-picker-screen">
       {/* PINNED TOP TOOLBAR */}
       <div className="proc-picker-pinned-toolbar">
-        {/* Subtitle and Synced row (no double frame/inner title/inner X) */}
-        <div className="proc-picker-header-row">
-          <p className="proc-picker-subtext">
-            Pick a card to view or set up its process.
-          </p>
-          <span className="proc-synced-indicator">
-            <span className="proc-synced-dot"></span> Synced
-          </span>
+        {/* Top Bar matching exact reference design */}
+        <div className="proc-picker-top-bar">
+          <div className="proc-brand-title-col">
+            <div className="proc-brand-icon-box">
+              <ProcessIcon width={18} height={18} />
+            </div>
+            <div>
+              <h2 className="proc-brand-heading">Processes</h2>
+              <p className="proc-brand-subtext">
+                Pick a card to view or set up its process.
+              </p>
+            </div>
+          </div>
+
+          <div className="proc-top-status-col">
+            <span className="proc-synced-badge">
+              <span className="proc-synced-dot"></span> Synced
+            </span>
+            {onClose && (
+              <button
+                type="button"
+                className="proc-top-close-btn"
+                onClick={onClose}
+                title="Close"
+              >
+                <CloseIcon width={13} height={13} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Search & Member Filter Bar */}
@@ -270,13 +275,6 @@ export default function ProcessMainModal({
             On hold {onHoldCount}
           </button>
         </div>
-
-        {/* Empty State Banner if no cards on board have a process */}
-        {withProcessCount === 0 && (
-          <div className="proc-empty-banner">
-            No processes yet. Pick a card and tap Set up.
-          </div>
-        )}
       </div>
 
       {/* SINGLE SCROLL CONTAINER FOR THE LIST */}
@@ -313,12 +311,10 @@ export default function ProcessMainModal({
                 onClick={() => toggleCollapseList(list.id)}
               >
                 <div className="proc-list-header-left">
-                  <span className="proc-list-chevron">
-                    {isCollapsed ? (
-                      <ChevronRightIcon width={12} height={12} />
-                    ) : (
-                      <ChevronDownIcon width={12} height={12} />
-                    )}
+                  <span className="proc-list-icon-box">
+                    <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                    </svg>
                   </span>
                   <span className="proc-list-title">{list.title}</span>
                   <span className="proc-list-count-meta">
@@ -343,7 +339,7 @@ export default function ProcessMainModal({
               {/* Group Cards */}
               {!isCollapsed && (
                 <div className="proc-list-items">
-                  {visibleCards.map((card) => {
+                  {visibleCards.map((card, cIndex) => {
                     const proc = cardProcesses[card.id];
                     const hasProc = Boolean(
                       proc && proc.enabled && proc.steps && proc.steps.length > 0
@@ -353,46 +349,48 @@ export default function ProcessMainModal({
                     const isAllDone = stats && stats.done === stats.total;
                     const displayTitle = getDisplayTitle(card.title);
 
-                    // Row Type 1: Card WITH a process
+                    // Row Type 1: Card WITH a process (Highlighted outline if first card / selected)
                     if (hasProc) {
                       return (
                         <div
                           key={card.id}
-                          className="proc-row-with-process"
+                          className={`proc-card-row with-process ${cIndex === 0 ? "highlight-active" : ""}`}
                           onClick={() => onSelectCard(card)}
                         >
-                          <div className="proc-row-left">
-                            <CardThumbnail card={card} />
-                            <div className="proc-row-text">
-                              <h4 className="proc-row-title">
+                          <div className="proc-card-row-left">
+                            <div className="proc-card-glyph-box glyph-active">
+                              <ProcessIcon width={14} height={14} />
+                            </div>
+                            <div className="proc-card-row-text">
+                              <h4 className="proc-card-row-title">
                                 {displayTitle || <span className="proc-untitled-fallback">Untitled card</span>}
                               </h4>
-                              <div className="proc-row-subline">
-                                <span className="proc-proc-title">
+                              <div className="proc-card-row-subline">
+                                <span className="proc-proc-name">
                                   {proc.title || "Deployment and verification"}
                                 </span>
-                                <div className="proc-mini-progress-bar">
+                                <div className="proc-mini-dashes">
                                   {proc.steps.map((st, sIdx) => (
                                     <span
                                       key={st.id || sIdx}
-                                      className={`proc-mini-seg ${
+                                      className={`proc-dash-seg ${
                                         st.status === "done"
-                                          ? "seg-done"
+                                          ? "dash-done"
                                           : st.status === "held"
-                                          ? "seg-held"
-                                          : "seg-todo"
+                                          ? "dash-held"
+                                          : "dash-todo"
                                       }`}
                                     />
                                   ))}
                                 </div>
-                                <span className="proc-frac-label">
+                                <span className="proc-dash-frac">
                                   {stats.done}/{stats.total}
                                 </span>
                               </div>
                             </div>
                           </div>
 
-                          <div className="proc-row-right">
+                          <div className="proc-card-row-right">
                             {isHeld && (
                               <span className="proc-status-pill pill-amber">
                                 {stats.held} on hold
@@ -428,31 +426,39 @@ export default function ProcessMainModal({
                       );
                     }
 
-                    // Row Type 2: Card WITHOUT a process (Single line ~44px, quiet Set up ghost button)
+                    // Row Type 2: Card WITHOUT a process (Exact 2-line structure with Title + No process yet + Set up button)
                     return (
                       <div
                         key={card.id}
-                        className="proc-row-no-process"
+                        className="proc-card-row no-process"
                         onClick={() => onSelectCard(card)}
                       >
-                        <div className="proc-row-left">
-                          <CardThumbnail card={card} />
-                          <h4 className="proc-row-title-single">
-                            {displayTitle || <span className="proc-untitled-fallback">Untitled card</span>}
-                          </h4>
-                          <span className="proc-no-proc-subtext">No process yet</span>
+                        <div className="proc-card-row-left">
+                          <div className="proc-card-glyph-box glyph-neutral">
+                            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="4" y="4" width="16" height="16" rx="2" />
+                            </svg>
+                          </div>
+                          <div className="proc-card-row-text">
+                            <h4 className="proc-card-row-title">
+                              {displayTitle || <span className="proc-untitled-fallback">Untitled card</span>}
+                            </h4>
+                            <div className="proc-card-row-subline">
+                              <span className="proc-no-proc-subtext">No process yet</span>
+                            </div>
+                          </div>
                         </div>
 
-                        <div className="proc-row-right">
+                        <div className="proc-card-row-right">
                           <button
                             type="button"
-                            className="proc-btn-setup-ghost"
+                            className="proc-btn-setup-outline"
                             onClick={(e) => {
                               e.stopPropagation();
                               onSelectCard(card);
                             }}
                           >
-                            Set up
+                            <span className="proc-btn-setup-icon">□</span> Set up
                           </button>
                         </div>
                       </div>
