@@ -1692,7 +1692,7 @@ html, body {
 }
 
 /* =========================================================================
-   PHASE 2: SLEEK PROCESS POWER-UP MODAL (MATCHING SCREENSHOT)
+   PHASE 2: SLEEK PROCESS POWER-UP MODAL (CLEAN & PROFESSIONAL)
    ========================================================================= */
 
 .proc-modal-shell {
@@ -1712,40 +1712,31 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 300px;
+  min-height: 260px;
   gap: 12px;
   color: #8b949e;
   font-size: 13.5px;
 }
 
-/* 1. TOP HEADER TITLE BAR */
-.proc-modal-header-top {
+/* Top Back Navigation (Breadcrumb) */
+.proc-modal-top-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  position: relative;
-}
-
-.proc-modal-main-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  text-align: center;
-  flex: 1;
-  letter-spacing: -0.1px;
+  margin-bottom: 12px;
 }
 
 .proc-btn-back-clean {
   background: transparent;
   border: none;
   color: #58a6ff;
+  font-family: inherit;
   font-size: 12.5px;
   font-weight: 500;
   cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 4px;
+  padding: 2px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   transition: color 0.15s ease;
 }
 
@@ -1754,32 +1745,13 @@ html, body {
   color: #79c0ff;
 }
 
-.proc-close-circle-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #1c232d;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #8b949e;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.proc-close-circle-btn:hover {
-  background: #252e3b;
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #ffffff;
-}
-
 /* 2. PROCESS HERO INFO BAR */
 .proc-hero-process-bar {
   display: flex;
   align-items: flex-start;
   gap: 12px;
   padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .proc-hero-icon-box {
@@ -1851,7 +1823,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 10px 0 16px;
+  margin: 14px 0 16px;
   gap: 14px;
   flex-wrap: wrap;
 }
@@ -1861,7 +1833,7 @@ html, body {
   align-items: center;
   gap: 12px;
   flex: 1;
-  min-width: 240px;
+  min-width: 220px;
 }
 
 .proc-multi-segmented-track {
@@ -1959,21 +1931,33 @@ html, body {
   flex-direction: column;
   gap: 10px;
   margin-bottom: 20px;
+  flex: 1;
+}
+
+.proc-steps-empty-state {
+  padding: 32px 16px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.06);
 }
 
 .proc-step-card-item {
   background: #141922;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  padding: 14px 16px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   transition: all 0.15s ease;
 }
 
 .proc-step-card-item:hover {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: #161c26;
 }
 
 .proc-step-top-line {
@@ -2011,6 +1995,22 @@ html, body {
   color: #ffffff;
 }
 
+.proc-step-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.proc-step-num-prefix {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #8b949e;
+  flex-shrink: 0;
+}
+
 .proc-step-title-text {
   font-size: 13.5px;
   font-weight: 600;
@@ -2023,6 +2023,28 @@ html, body {
 .proc-step-title-text.done {
   text-decoration: line-through;
   color: #8b949e;
+}
+
+.proc-step-pill-done {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.proc-step-pill-held {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #f59e0b;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .proc-step-right-meta {
@@ -2106,43 +2128,11 @@ html, body {
   color: #f87171;
 }
 
-/* Step Badge & Desc Row */
-.proc-step-badge-desc-row {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-left: 28px;
-  flex-wrap: wrap;
-}
-
-.proc-step-pill-done {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #10b981;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 1px 7px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.proc-step-pill-held {
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  color: #f59e0b;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 1px 7px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
 .proc-step-desc-text {
   font-size: 12.5px;
   color: #8b949e;
-  margin: 0;
+  margin: 2px 0 0 28px;
   line-height: 1.4;
-  flex: 1;
 }
 
 /* Embedded Hold Reason Banner */
