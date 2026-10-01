@@ -20,6 +20,25 @@ export function ProcessIcon({ width = 20, height = 20, className = "" }) {
   );
 }
 
+export function PauseIcon({ width = 14, height = 14, className = "" }) {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+      <rect x="14" y="4" width="4" height="16" rx="1" />
+    </svg>
+  );
+}
+
 export function SearchIcon({ width = 14, height = 14, className = "" }) {
   return (
     <svg

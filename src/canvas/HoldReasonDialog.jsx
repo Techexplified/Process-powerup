@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { getAllAvailableMembers } from "../lib/processStore.js";
+import { PauseIcon, CloseIcon } from "../lib/icons.jsx";
 
 export default function HoldReasonDialog({
   isOpen,
@@ -26,7 +27,7 @@ export default function HoldReasonDialog({
   function handleSubmit(e) {
     e.preventDefault();
     if (!reason.trim()) {
-      setError("Please provide a reason for placing this step on hold.");
+      setError("Please enter a reason for placing this step on hold.");
       return;
     }
 
@@ -52,11 +53,18 @@ export default function HoldReasonDialog({
         aria-modal="true"
       >
         <div className="proc-dialog-header">
-          <div className="proc-dialog-title-group">
-            <span className="proc-hold-amber-icon">⏸</span>
-            <div>
-              <h3 className="proc-dialog-title">Put step on hold</h3>
-              <p className="proc-dialog-subtitle">{step.name}</p>
+          <div className="proc-hold-dialog-title-left">
+            <div className="proc-hold-circle-glyph">
+              <span className="proc-hold-glyph-pause">⏸</span>
+            </div>
+            <div className="proc-hold-headings-wrap">
+              <div className="proc-hold-main-title-row">
+                <h3 className="proc-dialog-title">Hold Reason</h3>
+                <span className="proc-badge-hold-pill">● HOLD</span>
+              </div>
+              <p className="proc-dialog-subtitle" title={step.name}>
+                {step.name}
+              </p>
             </div>
           </div>
           <button
@@ -65,7 +73,7 @@ export default function HoldReasonDialog({
             onClick={onClose}
             aria-label="Close"
           >
-            ✕
+            <CloseIcon width={14} height={14} />
           </button>
         </div>
 
@@ -74,11 +82,13 @@ export default function HoldReasonDialog({
             {error && <div className="proc-dialog-error">{error}</div>}
 
             <div className="proc-dialog-group">
-              <label className="proc-dialog-label">Reason</label>
+              <label className="proc-dialog-label proc-label-amber-highlight">
+                Reason for Hold *
+              </label>
               <textarea
-                className="proc-dialog-textarea proc-textarea-amber-focus"
+                className="proc-dialog-textarea proc-textarea-amber-border"
                 rows={3}
-                placeholder="Waiting for client credentials"
+                placeholder="Enter reason for placing this step on hold (e.g. Waiting for client credentials)..."
                 value={reason}
                 onChange={(e) => {
                   setReason(e.target.value);
@@ -89,26 +99,29 @@ export default function HoldReasonDialog({
             </div>
 
             <div className="proc-dialog-group">
-              <label className="proc-dialog-label">Who's unblocking this</label>
-              <div className="proc-unblocker-pills-wrap">
+              <label className="proc-dialog-label">
+                <span className="proc-tag-people-icon">👥</span> Tag People (Optional)
+              </label>
+              <div className="proc-unblocker-grid-2col custom-slim-scrollbar">
                 {members.map((m) => {
                   const isSelected = selectedUnblockers.includes(m.id);
                   return (
-                    <button
+                    <div
                       key={m.id}
-                      type="button"
-                      className={`proc-unblocker-pill ${isSelected ? "selected" : ""}`}
+                      className={`proc-unblocker-card-item ${isSelected ? "selected" : ""}`}
                       onClick={() => toggleUnblocker(m.id)}
                     >
                       <span
-                        className="proc-unblocker-avatar"
+                        className="proc-unblocker-circle-avatar"
                         style={{ background: m.bg, color: m.text }}
                       >
                         {m.initials}
                       </span>
-                      <span className="proc-unblocker-name">{m.name}</span>
-                      {isSelected && <span className="proc-unblocker-remove">✕</span>}
-                    </button>
+                      <div className="proc-unblocker-info-col">
+                        <div className="proc-unblocker-item-name">{m.name}</div>
+                        <div className="proc-unblocker-item-role">{m.role || "Member"}</div>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -118,13 +131,14 @@ export default function HoldReasonDialog({
           <div className="proc-dialog-footer">
             <button
               type="button"
-              className="proc-dialog-btn-cancel"
+              className="proc-dialog-btn-cancel-link"
               onClick={onClose}
             >
               Cancel
             </button>
-            <button type="submit" className="proc-dialog-btn-submit-amber">
-              Put on hold
+            <button type="submit" className="proc-dialog-btn-submit-hold">
+              <span className="proc-btn-hold-icon">⏸</span>
+              <span>Submit Hold</span>
             </button>
           </div>
         </form>

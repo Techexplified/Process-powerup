@@ -10,8 +10,6 @@ import {
   ProcessIcon,
   CheckIcon,
   CalendarIcon,
-  MoreHorizontalIcon,
-  ChevronDownIcon,
   CloseIcon,
   PlayIcon,
   PlusIcon,
@@ -29,10 +27,6 @@ export default function ProcessDetailView({
   const [loading, setLoading] = useState(true);
   const [showAddStepDialog, setShowAddStepDialog] = useState(false);
   const [holdingStep, setHoldingStep] = useState(null);
-  const [activeStepMenuId, setActiveStepMenuId] = useState(null);
-  const [activeStatusMenuId, setActiveStatusMenuId] = useState(null);
-  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
-  const [expandedHoldStepId, setExpandedHoldStepId] = useState(null);
   const [reassignStep, setReassignStep] = useState(null);
 
   useEffect(() => {
@@ -42,11 +36,6 @@ export default function ProcessDetailView({
     loadCardProcess(card.id, t, card.title, card.description).then((data) => {
       if (isMounted) {
         setProcessData(data);
-        // Default expand first held step if any
-        const firstHeld = data?.steps?.find((s) => s.status === "held");
-        if (firstHeld) {
-          setExpandedHoldStepId(firstHeld.id);
-        }
         setLoading(false);
       }
     });
@@ -87,20 +76,14 @@ export default function ProcessDetailView({
     updateAndPersist(updated);
   }
 
-  // Set Step Status
-  function handleSetStepStatus(stepId, newStatus) {
-    setActiveStatusMenuId(null);
-    if (newStatus === "held") {
-      const stepObj = (processData.steps || []).find((s) => s.id === stepId);
-      if (stepObj) setHoldingStep(stepObj);
-      return;
-    }
-
+  // Toggle Done checkbox
+  function handleToggleStepDone(stepId) {
     const updatedSteps = (processData.steps || []).map((step) => {
       if (step.id === stepId) {
+        const nextStatus = step.status === "done" ? "pending" : "done";
         return {
           ...step,
-          status: newStatus,
+          status: nextStatus,
         };
       }
       return step;
@@ -123,7 +106,6 @@ export default function ProcessDetailView({
       }
       return step;
     });
-    setExpandedHoldStepId(stepId);
     updateAndPersist({
       ...processData,
       steps: updatedSteps,
@@ -137,6 +119,25 @@ export default function ProcessDetailView({
         return {
           ...step,
           status: "pending",
+        };
+      }
+      return step;
+    });
+    updateAndPersist({
+      ...processData,
+      steps: updatedSteps,
+    });
+  }
+
+  // Delete Reason
+  function handleDeleteHoldReason(stepId, reasonId) {
+    const updatedSteps = (processData.steps || []).map((step) => {
+      if (step.id === stepId) {
+        const nextReasons = (step.holdReasons || []).filter((r) => r.id !== reasonId);
+        return {
+          ...step,
+          holdReasons: nextReasons,
+          status: nextReasons.length === 0 ? "pending" : "held",
         };
       }
       return step;
@@ -172,7 +173,6 @@ export default function ProcessDetailView({
 
   // Delete Step
   function handleDeleteStep(stepId) {
-    setActiveStepMenuId(null);
     const updatedSteps = (processData.steps || []).filter((s) => s.id !== stepId);
     updateAndPersist({
       ...processData,
@@ -189,396 +189,341 @@ export default function ProcessDetailView({
     );
   }
 
-  // Disabled State
-  if (!processData?.enabled) {
-    return (
-      <div className="proc-detail-view custom-slim-scrollbar">
-        <div className="proc-detail-header-nav">
-          {onBack && (
-            <button type="button" className="proc-btn-back" onClick={onBack}>
-              ← Back to all cards
-            </button>
-          )}
-          {onClose && (
-            <button type="button" className="proc-dialog-close" onClick={onClose}>
-              <CloseIcon width={14} height={14} />
-            </button>
-          )}
-        </div>
-
-        <div className="proc-disabled-hero-card">
-          <div className="proc-disabled-hero-top">
-            <div className="proc-hero-icon-box">
-              <ProcessIcon width={22} height={22} />
-            </div>
-            <div className="proc-hero-titles">
-              <h3 className="proc-hero-title">Process</h3>
-              <p className="proc-hero-desc">Turn on to add steps to this card.</p>
-            </div>
-            <label className="proc-toggle-switch">
-              <input
-                type="checkbox"
-                checked={false}
-                onChange={handleToggleProcessEnable}
-              />
-              <span className="proc-toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const steps = processData.steps || [];
+  const steps = processData?.steps || [];
   const stats = calculateProcessStats(steps);
-  const formattedDueDate = card.due
-    ? new Date(card.due).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-    : processData.dueDate
-    ? new Date(processData.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-    : "Oct 10";
+  const isEnabled = Boolean(processData?.enabled);
+  const formattedDueDate = card.due || processData?.dueDate || "2026-10-10";
 
   return (
     <div className="proc-detail-view custom-slim-scrollbar">
-      {/* 1. HEADER */}
-      <div className="proc-detail-header">
-        <div className="proc-detail-header-left">
-          {onBack && (
-            <button
-              type="button"
-              className="proc-btn-back-icon"
-              onClick={onBack}
-              title="Back to all cards"
-            >
-              ←
-            </button>
-          )}
-
-          <div className="proc-detail-app-icon">
-            <ProcessIcon width={18} height={18} />
+      {/* 1. TOP TRELLO CARD HEADER */}
+      <div className="proc-card-top-header">
+        <div className="proc-card-title-row">
+          <div className="proc-card-top-icon">
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <line x1="3" y1="9" x2="21" y2="9" />
+            </svg>
           </div>
-
-          <div className="proc-detail-titles-col">
-            <div className="proc-detail-title-row">
-              <h2 className="proc-detail-main-title">
-                {processData.title || `${card.title} process`}
-              </h2>
-              <span className="proc-badge-active">Active</span>
-            </div>
-            <p className="proc-detail-desc">
-              {processData.description ||
-                "Mandatory verification workflow before triggering production deployment gate."}
-            </p>
+          <div>
+            <h2 className="proc-trello-card-name">{card.title}</h2>
+            <span className="proc-trello-list-meta">
+              in list <u>In Progress</u>
+            </span>
           </div>
         </div>
 
-        <div className="proc-detail-header-right">
-          <span className="proc-target-date-chip">
-            <CalendarIcon width={12} height={12} className="proc-chip-icon" />
-            <span>{formattedDueDate}</span>
-          </span>
-
-          <div className="proc-overflow-menu-wrapper">
-            <button
-              type="button"
-              className="proc-btn-icon-options"
-              onClick={() => setShowHeaderMenu(!showHeaderMenu)}
-              title="Options"
-            >
-              <MoreHorizontalIcon width={16} height={16} />
+        <div className="proc-card-top-actions">
+          {onBack && (
+            <button type="button" className="proc-btn-back-link" onClick={onBack}>
+              ← Back to cards
             </button>
-
-            {showHeaderMenu && (
-              <div className="proc-header-dropdown-menu">
-                <div
-                  className="proc-dropdown-item"
-                  onClick={() => {
-                    setShowHeaderMenu(false);
-                    handleToggleProcessEnable();
-                  }}
-                >
-                  Turn off process
-                </div>
-                <div
-                  className="proc-dropdown-item proc-item-danger"
-                  onClick={() => {
-                    setShowHeaderMenu(false);
-                    updateAndPersist({ ...processData, steps: [] });
-                  }}
-                >
-                  Clear all steps
-                </div>
-              </div>
-            )}
-          </div>
-
+          )}
           {onClose && (
-            <button
-              type="button"
-              className="proc-btn-icon-close"
-              onClick={onClose}
-              title="Close"
-            >
+            <button type="button" className="proc-card-top-close-btn" onClick={onClose} title="Close">
               <CloseIcon width={14} height={14} />
             </button>
           )}
         </div>
       </div>
 
-      {/* 2. PROGRESS AREA ("25%  ·  1 of 4 steps" + Segmented Bar + Legend) */}
-      <div className="proc-detail-progress-section">
-        <div className="proc-detail-progress-top">
-          <div className="proc-progress-pct-row">
-            <span className="proc-progress-big-pct">{stats.percent}%</span>
-            <span className="proc-progress-dot-sep">·</span>
-            <span className="proc-progress-sub-frac">
-              {stats.done} of {stats.total} steps
-            </span>
+      {/* 2. POWER-UP TOP BANNER */}
+      <div className="proc-powerup-hero-banner">
+        <div className="proc-powerup-brand-col">
+          <div className="proc-powerup-badge-row">
+            <div className="proc-powerup-glyph-box">
+              <ProcessIcon width={16} height={16} />
+            </div>
+            <span className="proc-powerup-main-title">PROCESSES</span>
+            <span className="proc-powerup-tag-pill">Power-Up</span>
           </div>
-
-          <div className="proc-progress-legend-row">
-            <span className="proc-legend-item legend-done">
-              <span className="proc-legend-dot dot-emerald"></span>
-              <span>{stats.done} done</span>
-            </span>
-            <span className="proc-legend-item legend-held">
-              <span className="proc-legend-dot dot-amber"></span>
-              <span>{stats.held} on hold</span>
-            </span>
-            <span className="proc-legend-item legend-todo">
-              <span className="proc-legend-dot dot-gray"></span>
-              <span>{stats.pending} to do</span>
-            </span>
-          </div>
+          <p className="proc-powerup-tagline">
+            Manage multi-step workflows, step assignees, hold reasons, and dates.
+          </p>
         </div>
 
-        {/* Segmented Bar (one segment per step) */}
-        <div className="proc-segmented-track">
-          {steps.map((s, i) => {
-            const isDone = s.status === "done";
-            const isHeld = s.status === "held";
-            return (
-              <div
-                key={s.id || i}
-                className={`proc-track-segment ${
-                  isDone ? "seg-done" : isHeld ? "seg-held" : "seg-todo"
-                }`}
-              />
-            );
-          })}
+        <div className="proc-powerup-right-col">
+          <button
+            type="button"
+            className={`proc-btn-enable-toggle ${isEnabled ? "enabled" : ""}`}
+            onClick={handleToggleProcessEnable}
+          >
+            {isEnabled ? "✓ Process Enabled" : "+ Enable Process / Task"}
+          </button>
         </div>
       </div>
 
-      {/* 3. STEP LIST */}
-      <div className="proc-detail-steps-list">
-        {steps.map((step) => {
+      {/* 3. ACTIVE PROCESS CONTAINER & PROGRESS BAR */}
+      {isEnabled && (
+        <div className="proc-active-process-card">
+          <div className="proc-active-process-top">
+            <div className="proc-active-toggle-icon">
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <rect x="2" y="6" width="20" height="12" rx="6" />
+                <circle cx="16" cy="12" r="4" fill="currentColor" />
+              </svg>
+            </div>
+
+            <div className="proc-active-titles-col">
+              <div className="proc-active-heading-row">
+                <h3 className="proc-active-process-title">
+                  {processData?.title || `${card.title} Process`}
+                </h3>
+                <span className="proc-tag-active">Active</span>
+              </div>
+              <p className="proc-active-process-desc">
+                {processData?.description ||
+                  "Mandatory verification workflow before triggering production deployment gate."}
+              </p>
+            </div>
+
+            <div className="proc-active-right-box">
+              <div className="proc-date-box-pill">
+                <CalendarIcon width={13} height={13} />
+                <span>{formattedDueDate}</span>
+              </div>
+              <button
+                type="button"
+                className="proc-btn-delete-card-process"
+                onClick={handleToggleProcessEnable}
+                title="Disable process"
+              >
+                🗑
+              </button>
+            </div>
+          </div>
+
+          {/* Progress Breakdown Row */}
+          <div className="proc-progress-stats-row">
+            <div className="proc-progress-label-col">
+              <span className="proc-progress-bold-txt">Progress: {stats.percent}%</span>
+              <span className="proc-progress-muted-txt">{stats.done}/{stats.total} steps completed</span>
+            </div>
+
+            <div className="proc-progress-pills-col">
+              {stats.held > 0 && (
+                <span className="proc-stat-badge stat-amber">
+                  🟡 {stats.held} on hold
+                </span>
+              )}
+              {stats.pending > 0 && (
+                <span className="proc-stat-badge stat-red">
+                  🔴 {stats.pending} pending
+                </span>
+              )}
+              {stats.done > 0 && (
+                <span className="proc-stat-badge stat-green">
+                  🟢 {stats.done} done
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Segmented Progress Track */}
+          <div className="proc-segmented-progress-track">
+            {steps.map((s, idx) => (
+              <div
+                key={s.id || idx}
+                className={`proc-track-segment ${
+                  s.status === "done"
+                    ? "seg-green"
+                    : s.status === "held"
+                    ? "seg-amber"
+                    : "seg-gray"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 4. STEP ITEMS LIST */}
+      <div className="proc-steps-stack-container">
+        {steps.map((step, idx) => {
           const isDone = step.status === "done";
           const isHeld = step.status === "held";
           const isPending = step.status === "pending" || !step.status;
           const holdReasons = step.holdReasons || [];
           const primaryHoldReason = holdReasons[0];
-          const isHoldExpanded = isHeld && expandedHoldStepId === step.id;
-
-          const taggedMember = primaryHoldReason?.taggedPeople?.[0]
-            ? getMemberById(primaryHoldReason.taggedPeople[0])
-            : getMemberById("DH");
 
           return (
             <div
               key={step.id}
-              className={`proc-step-item-card ${
-                isDone ? "item-done" : isHeld ? "item-held" : "item-todo"
+              className={`proc-step-row-card ${
+                isHeld ? "step-held-border" : isDone ? "step-done-border" : "step-pending-border"
               }`}
             >
-              <div className="proc-step-item-header">
-                {/* Status Indicator Glyph */}
-                <div
-                  className={`proc-step-status-icon ${
-                    isDone ? "icon-done" : isHeld ? "icon-held" : "icon-todo"
-                  }`}
-                  onClick={() =>
-                    handleSetStepStatus(step.id, isDone ? "pending" : "done")
-                  }
-                  title="Toggle done"
-                >
-                  {isDone ? (
-                    <CheckIcon width={13} height={13} />
-                  ) : isHeld ? (
-                    <span className="proc-held-pause-glyph">⏸</span>
+              {/* Step Header Line */}
+              <div className="proc-step-header-line">
+                <div className="proc-step-header-left">
+                  {/* Glowing Status Dot */}
+                  <span
+                    className={`proc-step-glow-dot ${
+                      isDone ? "glow-green" : isHeld ? "glow-amber" : "glow-gray"
+                    }`}
+                  />
+
+                  {/* Checkbox */}
+                  <div
+                    className={`proc-step-checkbox-box ${isDone ? "checked" : ""}`}
+                    onClick={() => handleToggleStepDone(step.id)}
+                    title="Toggle done"
+                  >
+                    {isDone && <CheckIcon width={12} height={12} />}
+                  </div>
+
+                  {/* Title & Badge */}
+                  <div className="proc-step-title-wrapper">
+                    <span className={`proc-step-name-text ${isDone ? "done-strike" : ""}`}>
+                      {idx + 1}. {step.name}
+                    </span>
+                    {isDone && <span className="proc-badge-done">Done</span>}
+                    {isHeld && <span className="proc-badge-held">Held</span>}
+                  </div>
+                </div>
+
+                {/* Right Step Actions */}
+                <div className="proc-step-header-right">
+                  {isHeld ? (
+                    <button
+                      type="button"
+                      className="proc-btn-step-held-active"
+                      onClick={() => handleResumeStep(step.id)}
+                      title="Click to resume"
+                    >
+                      ⏸ Held
+                    </button>
                   ) : (
-                    <span className="proc-todo-circle-glyph">○</span>
-                  )}
-                </div>
-
-                {/* Step Title & Meta */}
-                <div className="proc-step-content-col">
-                  <h4 className={`proc-step-item-title ${isDone ? "title-done" : ""}`}>
-                    {step.name}
-                  </h4>
-
-                  {step.description && !isDone && (
-                    <p className="proc-step-item-desc">{step.description}</p>
-                  )}
-
-                  <div className="proc-step-meta-row">
-                    {step.targetDate && (
-                      <span className="proc-step-meta-date">
-                        <CalendarIcon width={11} height={11} />
-                        <span>{step.targetDate}</span>
-                      </span>
-                    )}
-
-                    {step.assignees && step.assignees.length > 0 && (
-                      <div className="proc-step-avatar-bubbles">
-                        {step.assignees.map((memId) => {
-                          const member = getMemberById(memId);
-                          return (
-                            <span
-                              key={memId}
-                              className="proc-step-mini-avatar"
-                              style={{ background: member.bg, color: member.text }}
-                              title={member.name}
-                            >
-                              {member.initials}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Collapsed Hold Reason Chip (Expands on click) */}
-                    {isHeld && !isHoldExpanded && (
-                      <button
-                        type="button"
-                        className="proc-hold-reason-chip-btn"
-                        onClick={() => setExpandedHoldStepId(step.id)}
-                      >
-                        {holdReasons.length > 1
-                          ? `${holdReasons.length} hold reasons`
-                          : "1 hold reason"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Status Dropdown Pill & Overflow Menu */}
-                <div className="proc-step-right-actions">
-                  <div className="proc-status-dropdown-wrapper">
                     <button
                       type="button"
-                      className={`proc-status-pill-select ${
-                        isDone
-                          ? "status-done"
-                          : isHeld
-                          ? "status-held"
-                          : "status-todo"
-                      }`}
-                      onClick={() =>
-                        setActiveStatusMenuId(
-                          activeStatusMenuId === step.id ? null : step.id
-                        )
-                      }
+                      className="proc-btn-step-hold-outline"
+                      onClick={() => setHoldingStep(step)}
                     >
-                      <span>{isDone ? "Done" : isHeld ? "Held" : "To do"}</span>
-                      <ChevronDownIcon width={10} height={10} />
+                      ⏸ Hold
                     </button>
+                  )}
 
-                    {activeStatusMenuId === step.id && (
-                      <div className="proc-status-menu-dropdown">
-                        <div
-                          className={`proc-status-menu-item ${isPending ? "selected" : ""}`}
-                          onClick={() => handleSetStepStatus(step.id, "pending")}
-                        >
-                          To do
-                        </div>
-                        <div
-                          className="proc-status-menu-item"
-                          onClick={() => handleSetStepStatus(step.id, "in_progress")}
-                        >
-                          In progress
-                        </div>
-                        <div
-                          className={`proc-status-menu-item ${isHeld ? "selected" : ""}`}
-                          onClick={() => handleSetStepStatus(step.id, "held")}
-                        >
-                          Held
-                        </div>
-                        <div
-                          className={`proc-status-menu-item ${isDone ? "selected" : ""}`}
-                          onClick={() => handleSetStepStatus(step.id, "done")}
-                        >
-                          Done
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Step Overflow Menu ("...") */}
-                  <div className="proc-step-overflow-wrapper">
-                    <button
-                      type="button"
-                      className="proc-step-btn-more"
-                      onClick={() =>
-                        setActiveStepMenuId(
-                          activeStepMenuId === step.id ? null : step.id
-                        )
-                      }
-                      title="More options"
+                  {step.assignees && step.assignees.length > 0 && (
+                    <span
+                      className="proc-step-avatar-circle"
+                      style={{
+                        background: getMemberById(step.assignees[0]).bg,
+                        color: getMemberById(step.assignees[0]).text,
+                      }}
+                      title={getMemberById(step.assignees[0]).name}
                     >
-                      <MoreHorizontalIcon width={15} height={15} />
-                    </button>
-
-                    {activeStepMenuId === step.id && (
-                      <div className="proc-step-dropdown-menu">
-                        <div
-                          className="proc-dropdown-item proc-item-danger"
-                          onClick={() => handleDeleteStep(step.id)}
-                        >
-                          Delete step
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Expanded Hold Reason Banner */}
-              {isHoldExpanded && (
-                <div className="proc-held-card-banner">
-                  <div className="proc-held-banner-body">
-                    <p className="proc-held-reason-text">
-                      {primaryHoldReason?.reason ||
-                        "Twilio staging webhook test credentials expired. Waiting on IT SecOps renewal."}
-                    </p>
-
-                    <div className="proc-held-unblocker-row">
-                      <span
-                        className="proc-unblocker-avatar"
-                        style={{ background: taggedMember.bg, color: taggedMember.text }}
-                      >
-                        {taggedMember.initials}
-                      </span>
-                      <span className="proc-unblocker-name">
-                        {taggedMember.name}
-                      </span>
-                      <span className="proc-unblocker-sep">·</span>
-                      <button
-                        type="button"
-                        className="proc-btn-reassign"
-                        onClick={() => setReassignStep(step)}
-                      >
-                        Reassign
-                      </button>
-                    </div>
-                  </div>
+                      {getMemberById(step.assignees[0]).initials}
+                    </span>
+                  )}
 
                   <button
                     type="button"
-                    className="proc-btn-resume-held"
-                    onClick={() => handleResumeStep(step.id)}
+                    className="proc-btn-step-delete-icon"
+                    onClick={() => handleDeleteStep(step.id)}
+                    title="Delete step"
                   >
-                    <PlayIcon width={10} height={10} className="proc-resume-icon" />
-                    <span>Resume</span>
+                    🗑
                   </button>
+                </div>
+              </div>
+
+              {/* Step Description */}
+              {step.description && !isDone && (
+                <p className="proc-step-desc-text">{step.description}</p>
+              )}
+
+              {/* Step Meta (Date + People) */}
+              <div className="proc-step-meta-chips-line">
+                {step.targetDate && (
+                  <span className="proc-step-meta-date-chip">
+                    <CalendarIcon width={12} height={12} />
+                    <span>{step.targetDate}</span>
+                  </span>
+                )}
+                {step.assignees && step.assignees.length > 0 && (
+                  <span className="proc-step-meta-assignee-chip">
+                    <span>👥</span>
+                    <span
+                      className="proc-meta-mini-avatar"
+                      style={{
+                        background: getMemberById(step.assignees[0]).bg,
+                        color: getMemberById(step.assignees[0]).text,
+                      }}
+                    >
+                      {getMemberById(step.assignees[0]).initials}
+                    </span>
+                  </span>
+                )}
+              </div>
+
+              {/* Hold Reasons Section */}
+              {isHeld && (
+                <div className="proc-step-hold-reasons-wrapper">
+                  <div className="proc-hold-reasons-top-bar">
+                    <span className="proc-hold-reasons-count-title">
+                      ⏸ Hold Reasons ({holdReasons.length}):
+                    </span>
+                    <button
+                      type="button"
+                      className="proc-btn-add-more-hold-reason"
+                      onClick={() => setHoldingStep(step)}
+                    >
+                      + Add more hold reason
+                    </button>
+                  </div>
+
+                  {holdReasons.map((hr, hrIdx) => {
+                    const taggedId = hr.taggedPeople?.[0] || "DH";
+                    const taggedMem = getMemberById(taggedId);
+
+                    return (
+                      <div key={hr.id || hrIdx} className="proc-inner-hold-card-box">
+                        <div className="proc-inner-hold-text-row">
+                          <p className="proc-inner-hold-reason-msg">
+                            <span className="proc-hold-num">#{hrIdx + 1}</span> {hr.reason}
+                          </p>
+                          <button
+                            type="button"
+                            className="proc-btn-delete-reason"
+                            onClick={() => handleDeleteHoldReason(step.id, hr.id)}
+                            title="Delete reason"
+                          >
+                            🗑
+                          </button>
+                        </div>
+
+                        <div className="proc-inner-hold-tagged-row">
+                          <span className="proc-tagged-label">Tagged:</span>
+                          <span className="proc-tagged-member-badge">
+                            <span
+                              className="proc-tagged-avatar"
+                              style={{ background: taggedMem.bg, color: taggedMem.text }}
+                            >
+                              {taggedMem.initials}
+                            </span>
+                            <span className="proc-tagged-name">{taggedMem.name}</span>
+                          </span>
+
+                          <button
+                            type="button"
+                            className="proc-btn-reassign-link"
+                            onClick={() => setReassignStep(step)}
+                          >
+                            Reassign / Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className="proc-btn-resume-inline"
+                            onClick={() => handleResumeStep(step.id)}
+                          >
+                            <PlayIcon width={10} height={10} />
+                            <span>Resume</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -586,23 +531,19 @@ export default function ProcessDetailView({
         })}
       </div>
 
-      {/* 4. STICKY FOOTER */}
-      <div className="proc-detail-footer-bar">
+      {/* 5. ADD STEPS BUTTON */}
+      <div className="proc-detail-bottom-bar">
         <button
           type="button"
-          className="proc-btn-add-step-secondary"
+          className="proc-btn-add-steps-primary"
           onClick={() => setShowAddStepDialog(true)}
         >
-          <PlusIcon width={13} height={13} />
-          <span>Add step</span>
+          <PlusIcon width={14} height={14} />
+          <span>Add Steps</span>
         </button>
-
-        <span className="proc-footer-step-counter">
-          {stats.total} steps · {stats.done} completed
-        </span>
       </div>
 
-      {/* MODALS */}
+      {/* DIALOGS */}
       <AddStepDialog
         isOpen={showAddStepDialog}
         onClose={() => setShowAddStepDialog(false)}
@@ -619,7 +560,7 @@ export default function ProcessDetailView({
       {/* Reassign Dialog */}
       {reassignStep && (
         <div className="proc-dialog-backdrop" onClick={() => setReassignStep(null)}>
-          <div className="proc-dialog-window" onClick={(e) => e.stopPropagation()}>
+          <div className="proc-dialog-card" onClick={(e) => e.stopPropagation()}>
             <div className="proc-dialog-header">
               <h3 className="proc-dialog-title">Reassign unblocker</h3>
               <button
@@ -627,27 +568,27 @@ export default function ProcessDetailView({
                 className="proc-dialog-close"
                 onClick={() => setReassignStep(null)}
               >
-                <CloseIcon width={14} height={14} />
+                ✕
               </button>
             </div>
             <div className="proc-dialog-body">
-              <p className="proc-reassign-sub">
-                Select team member responsible for unblocking this step:
-              </p>
-              <div className="proc-members-picker-list">
+              <div className="proc-reassign-members-grid">
                 {getAllAvailableMembers().map((mem) => (
                   <div
                     key={mem.id}
-                    className="proc-member-select-row"
+                    className="proc-reassign-member-card"
                     onClick={() => handleReassignUnblocker(reassignStep.id, mem.id)}
                   >
                     <span
-                      className="proc-member-picker-avatar"
+                      className="proc-reassign-avatar"
                       style={{ background: mem.bg, color: mem.text }}
                     >
                       {mem.initials}
                     </span>
-                    <span className="proc-member-picker-name">{mem.name}</span>
+                    <div>
+                      <div className="proc-reassign-name">{mem.name}</div>
+                      <div className="proc-reassign-role">{mem.role || "Member"}</div>
+                    </div>
                   </div>
                 ))}
               </div>
