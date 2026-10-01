@@ -347,10 +347,16 @@ export default function ProcessDetailView({
 
       {/* 4. STEP ITEMS LIST */}
       <div className="proc-steps-stack-container">
-        {steps.map((step) => {
+        {steps.map((step, idx) => {
           const isDone = step.status === "done";
           const isHeld = step.status === "held";
           const holdReasons = step.holdReasons || [];
+          const primaryHoldReason = holdReasons[0];
+          const assigneeId = step.assignees?.[0] || "SC";
+          const member = getMemberById(assigneeId);
+          const taggedMember = primaryHoldReason?.taggedPeople?.[0]
+            ? getMemberById(primaryHoldReason.taggedPeople[0])
+            : getMemberById("DH");
 
           return (
             <div
@@ -359,7 +365,7 @@ export default function ProcessDetailView({
                 isHeld ? "step-held-border" : isDone ? "step-done-border" : "step-pending-border"
               }`}
             >
-              {/* Step Header Line */}
+              {/* Main Step Line */}
               <div className="proc-step-header-line">
                 <div className="proc-step-header-left">
                   {/* Glowing Status Dot */}
@@ -378,8 +384,9 @@ export default function ProcessDetailView({
                     {isDone && <CheckIcon width={12} height={12} />}
                   </div>
 
-                  {/* Step Title & Status Badge */}
+                  {/* Number & Name */}
                   <div className="proc-step-title-wrapper">
+                    <span className="proc-step-idx">{idx + 1}.</span>
                     <span className={`proc-step-name-text ${isDone ? "done-strike" : ""}`}>
                       {step.name}
                     </span>
@@ -388,8 +395,15 @@ export default function ProcessDetailView({
                   </div>
                 </div>
 
-                {/* Right Step Actions */}
+                {/* Right Step Actions: Hold, Avatar, Date, Delete */}
                 <div className="proc-step-header-right">
+                  {step.targetDate && (
+                    <span className="proc-step-date-chip" title="Target Date">
+                      <CalendarIcon width={11} height={11} />
+                      <span>{step.targetDate}</span>
+                    </span>
+                  )}
+
                   <button
                     type="button"
                     className={`proc-btn-step-hold-pill ${isHeld ? "is-held" : ""}`}
@@ -400,11 +414,19 @@ export default function ProcessDetailView({
                         setHoldingStep(step);
                       }
                     }}
-                    title={isHeld ? "Resume step" : "Place on hold"}
+                    title={isHeld ? "Click to resume" : "Place on hold"}
                   >
                     <span className="proc-hold-circle-icon">⏸</span>
-                    <span>Hold</span>
+                    <span>{isHeld ? "Held" : "Hold"}</span>
                   </button>
+
+                  <span
+                    className="proc-step-avatar-circle"
+                    style={{ background: member.bg, color: member.text }}
+                    title={member.name}
+                  >
+                    {member.initials}
+                  </span>
 
                   <button
                     type="button"
@@ -422,116 +444,47 @@ export default function ProcessDetailView({
                 <p className="proc-step-desc-text">{step.description}</p>
               )}
 
-              {/* Meta Chips: Date & Assignees */}
-              {(step.targetDate || (step.assignees && step.assignees.length > 0)) && (
-                <div className="proc-step-meta-chips-row">
-                  {step.targetDate && (
-                    <span className="proc-step-date-chip">
-                      <CalendarIcon width={12} height={12} />
-                      <span>{step.targetDate}</span>
-                    </span>
-                  )}
-
-                  {step.assignees && step.assignees.length > 0 && (
-                    <div className="proc-step-assignees-chip">
-                      <UsersIcon width={13} height={13} className="proc-step-users-glyph" />
-                      {step.assignees.map((memId) => {
-                        const member = getMemberById(memId);
-                        return (
-                          <span
-                            key={memId}
-                            className="proc-step-avatar-circle"
-                            style={{ background: member.bg, color: member.text }}
-                            title={member.name}
-                          >
-                            {member.initials}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Hold Reasons Section (When Step is Held) */}
+              {/* Embedded Hold Reason Container (Matching Reference Design 1) */}
               {isHeld && (
-                <div className="proc-step-hold-container">
-                  <div className="proc-hold-container-header">
-                    <div className="proc-hold-header-title">
-                      <span className="proc-hold-alert-icon">⚠️</span>
-                      <span className="proc-hold-title-text">
-                        Hold Reasons ({holdReasons.length || 1}):
+                <div className="proc-step-hold-reasons-box">
+                  <div className="proc-hold-box-top-row">
+                    <div className="proc-hold-badge-reason-left">
+                      <span className="proc-hold-solid-badge">● HOLD</span>
+                      <span className="proc-hold-main-text">
+                        {primaryHoldReason?.reason ||
+                          "Twilio staging webhook test credentials expired. Waiting on IT SecOps renewal."}
                       </span>
                     </div>
 
                     <button
                       type="button"
-                      className="proc-btn-add-more-hold-link"
-                      onClick={() => setHoldingStep(step)}
+                      className="proc-btn-hold-resume-ghost"
+                      onClick={() => handleResumeStep(step.id)}
                     >
-                      + Add more hold reason
+                      <PlayIcon width={10} height={10} />
+                      <span>Resume</span>
                     </button>
                   </div>
 
-                  <div className="proc-hold-cards-stack">
-                    {(holdReasons.length > 0
-                      ? holdReasons
-                      : [
-                          {
-                            id: "default-hr",
-                            reason:
-                              "Twilio staging webhook test credentials expired. Waiting on IT SecOps renewal.",
-                            taggedPeople: ["DH"],
-                          },
-                        ]
-                    ).map((hr, hrIdx) => {
-                      const taggedPeopleList =
-                        hr.taggedPeople && hr.taggedPeople.length > 0 ? hr.taggedPeople : [];
-                      return (
-                        <div key={hr.id || hrIdx} className="proc-hold-reason-amber-card">
-                          <div className="proc-hold-reason-text-row">
-                            <p className="proc-hold-reason-full-text">
-                              <strong className="proc-hold-reason-num">#{hrIdx + 1}</strong>{" "}
-                              {hr.reason}
-                            </p>
-                            <button
-                              type="button"
-                              className="proc-btn-delete-hold-reason"
-                              onClick={() => handleDeleteHoldReason(step.id, hr.id)}
-                              title="Remove hold reason"
-                            >
-                              <TrashIcon width={13} height={13} />
-                            </button>
-                          </div>
+                  <div className="proc-hold-box-bottom-row">
+                    <span className="proc-assigned-hold-label">Assigned to Hold:</span>
+                    <span className="proc-assigned-hold-member-pill">
+                      <span
+                        className="proc-assigned-avatar"
+                        style={{ background: taggedMember.bg, color: taggedMember.text }}
+                      >
+                        {taggedMember.initials}
+                      </span>
+                      <span className="proc-assigned-name">{taggedMember.name}</span>
+                    </span>
 
-                          <div className="proc-hold-reason-tagged-row">
-                            <span className="proc-tagged-label">Tagged:</span>
-                            {taggedPeopleList.length > 0 ? (
-                              taggedPeopleList.map((memId) => {
-                                const taggedMem = getMemberById(memId);
-                                return (
-                                  <span key={memId} className="proc-tagged-member-pill">
-                                    <span
-                                      className="proc-tagged-avatar"
-                                      style={{ background: taggedMem.bg, color: taggedMem.text }}
-                                    >
-                                      {taggedMem.initials}
-                                    </span>
-                                    <span className="proc-tagged-name">{taggedMem.name}</span>
-                                  </span>
-                                );
-                              })
-                            ) : (
-                              <span className="proc-tagged-member-pill">
-                                <span className="proc-tagged-name" style={{ color: "#8b949e" }}>
-                                  None
-                                </span>
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                    <button
+                      type="button"
+                      className="proc-btn-reassign-link-yellow"
+                      onClick={() => setHoldingStep(step)}
+                    >
+                      Reassign / Edit
+                    </button>
                   </div>
                 </div>
               )}
@@ -551,6 +504,18 @@ export default function ProcessDetailView({
           <PlusIcon width={14} height={14} />
           <span>Add Steps</span>
         </button>
+
+        <div className="proc-footer-telemetry-text">
+          <span>{stats.total} Steps</span>
+          <span>•</span>
+          <span className="proc-foot-done">{stats.done} Completed</span>
+          {stats.held > 0 && (
+            <>
+              <span>•</span>
+              <span className="proc-foot-held">{stats.held} On Hold</span>
+            </>
+          )}
+        </div>
       </div>
 
       {/* DIALOGS */}

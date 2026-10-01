@@ -3519,12 +3519,12 @@ html, body {
 
 .proc-detail-bottom-bar {
   flex-shrink: 0;
-  padding: 14px 24px;
+  padding: 12px 24px;
   background: #11141a;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   z-index: 20;
 }
 
@@ -3545,4 +3545,23 @@ html, body {
 
 .proc-btn-add-steps-primary:hover {
   background: #1d4ed8;
+}
+
+.proc-footer-telemetry-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8b949e;
+}
+
+.proc-foot-done {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.proc-foot-held {
+  color: #f59e0b;
+  font-weight: 600;
 }
