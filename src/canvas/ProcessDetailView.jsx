@@ -17,6 +17,28 @@ import {
 import AddStepDialog from "./AddStepDialog.jsx";
 import HoldReasonDialog from "./HoldReasonDialog.jsx";
 
+function formatDateShort(dateStr) {
+  if (!dateStr) return "Oct 08";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+  } catch {
+    return dateStr;
+  }
+}
+
+function formatDateFull(dateStr) {
+  if (!dateStr) return "Oct 10, 2026";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+  } catch {
+    return dateStr;
+  }
+}
+
 export default function ProcessDetailView({
   card,
   onBack,
@@ -25,9 +47,9 @@ export default function ProcessDetailView({
 }) {
   const [processData, setProcessData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState("all");
   const [showAddStepDialog, setShowAddStepDialog] = useState(false);
   const [holdingStep, setHoldingStep] = useState(null);
-  const [reassignStep, setReassignStep] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -48,23 +70,6 @@ export default function ProcessDetailView({
   function updateAndPersist(newData) {
     setProcessData(newData);
     saveCardProcess(card.id, newData, t);
-  }
-
-  // Toggle Process Enable
-  function handleToggleProcessEnable() {
-    const nextEnabled = !processData?.enabled;
-    const updated = {
-      ...processData,
-      enabled: nextEnabled,
-      title: processData?.title || `${card.title} process`,
-      description:
-        processData?.description ||
-        card.description ||
-        "Mandatory verification workflow before triggering production deployment gate.",
-      status: nextEnabled ? "Active" : "Draft",
-      steps: processData?.steps?.length ? processData.steps : [],
-    };
-    updateAndPersist(updated);
   }
 
   // Add Step
@@ -129,48 +134,6 @@ export default function ProcessDetailView({
     });
   }
 
-  // Delete Reason
-  function handleDeleteHoldReason(stepId, reasonId) {
-    const updatedSteps = (processData.steps || []).map((step) => {
-      if (step.id === stepId) {
-        const nextReasons = (step.holdReasons || []).filter((r) => r.id !== reasonId);
-        return {
-          ...step,
-          holdReasons: nextReasons,
-          status: nextReasons.length === 0 ? "pending" : "held",
-        };
-      }
-      return step;
-    });
-    updateAndPersist({
-      ...processData,
-      steps: updatedSteps,
-    });
-  }
-
-  // Reassign Step Unblocker
-  function handleReassignUnblocker(stepId, newMemberId) {
-    const updatedSteps = (processData.steps || []).map((step) => {
-      if (step.id === stepId && step.holdReasons?.length > 0) {
-        const updatedReasons = [...step.holdReasons];
-        updatedReasons[0] = {
-          ...updatedReasons[0],
-          taggedPeople: [newMemberId],
-        };
-        return {
-          ...step,
-          holdReasons: updatedReasons,
-        };
-      }
-      return step;
-    });
-    setReassignStep(null);
-    updateAndPersist({
-      ...processData,
-      steps: updatedSteps,
-    });
-  }
-
   // Delete Step
   function handleDeleteStep(stepId) {
     const updatedSteps = (processData.steps || []).filter((s) => s.id !== stepId);
@@ -191,339 +154,232 @@ export default function ProcessDetailView({
 
   const steps = processData?.steps || [];
   const stats = calculateProcessStats(steps);
-  const isEnabled = Boolean(processData?.enabled);
-  const formattedDueDate = card.due || processData?.dueDate || "2026-10-10";
+  const formattedDueDate = formatDateFull(card.due || processData?.dueDate || "2026-10-10");
+
+  const filteredSteps = steps.filter((step) => {
+    if (activeFilter === "pending") return step.status === "pending" || !step.status;
+    if (activeFilter === "held") return step.status === "held";
+    if (activeFilter === "done") return step.status === "done";
+    return true;
+  });
 
   return (
-    <div className="proc-detail-view custom-slim-scrollbar">
-      {/* 1. TOP TRELLO CARD HEADER */}
-      <div className="proc-card-top-header">
-        <div className="proc-card-title-row">
-          <div className="proc-card-top-icon">
-            <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <line x1="3" y1="9" x2="21" y2="9" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="proc-trello-card-name">{card.title}</h2>
-            <span className="proc-trello-list-meta">
-              in list <u>In Progress</u>
-            </span>
-          </div>
-        </div>
+    <div className="proc-modal-shell custom-slim-scrollbar">
+      {/* 1. TOP TITLE BAR */}
+      <div className="proc-modal-header-top">
+        {onBack ? (
+          <button type="button" className="proc-btn-back-clean" onClick={onBack}>
+            ← Back
+          </button>
+        ) : (
+          <div style={{ width: 40 }} />
+        )}
 
-        <div className="proc-card-top-actions">
-          {onBack && (
-            <button type="button" className="proc-btn-back-link" onClick={onBack}>
-              ← Back to cards
-            </button>
-          )}
-          {onClose && (
-            <button type="button" className="proc-card-top-close-btn" onClick={onClose} title="Close">
-              <CloseIcon width={14} height={14} />
-            </button>
-          )}
-        </div>
+        <h1 className="proc-modal-main-title">Process Power-Up</h1>
+
+        {onClose ? (
+          <button
+            type="button"
+            className="proc-close-circle-btn"
+            onClick={onClose}
+            title="Close"
+          >
+            <CloseIcon width={13} height={13} />
+          </button>
+        ) : (
+          <div style={{ width: 40 }} />
+        )}
       </div>
 
-      {/* 2. POWER-UP TOP BANNER */}
-      <div className="proc-powerup-hero-banner">
-        <div className="proc-powerup-brand-col">
-          <div className="proc-powerup-badge-row">
-            <div className="proc-powerup-glyph-box">
-              <ProcessIcon width={16} height={16} />
-            </div>
-            <span className="proc-powerup-main-title">PROCESSES</span>
-            <span className="proc-powerup-tag-pill">Power-Up</span>
+      {/* 2. PROCESS HERO INFO */}
+      <div className="proc-hero-process-bar">
+        <div className="proc-hero-icon-box">
+          <ProcessIcon width={18} height={18} />
+        </div>
+
+        <div className="proc-hero-details">
+          <div className="proc-hero-title-line">
+            <h2 className="proc-hero-name">
+              {processData?.title || card.title || "Deployment & Verification Process"}
+            </h2>
+            <span className="proc-badge-active-pill">Active</span>
           </div>
-          <p className="proc-powerup-tagline">
-            Manage multi-step workflows, step assignees, hold reasons, and dates.
+          <p className="proc-hero-desc">
+            {processData?.description ||
+              card.description ||
+              "Mandatory verification workflow before triggering production deployment gate."}
           </p>
         </div>
 
-        <div className="proc-powerup-right-col">
-          <button
-            type="button"
-            className={`proc-btn-enable-toggle ${isEnabled ? "enabled" : ""}`}
-            onClick={handleToggleProcessEnable}
-          >
-            {isEnabled ? "✓ Process Enabled" : "+ Enable Process / Task"}
-          </button>
+        <div className="proc-hero-due-pill">
+          <CalendarIcon width={13} height={13} />
+          <span>{formattedDueDate}</span>
         </div>
       </div>
 
-      {/* 3. ACTIVE PROCESS CONTAINER & PROGRESS BAR */}
-      {isEnabled && (
-        <div className="proc-active-process-card">
-          <div className="proc-active-process-top">
-            <div className="proc-active-toggle-icon">
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <rect x="2" y="6" width="20" height="12" rx="6" />
-                <circle cx="16" cy="12" r="4" fill="currentColor" />
-              </svg>
-            </div>
-
-            <div className="proc-active-titles-col">
-              <div className="proc-active-heading-row">
-                <h3 className="proc-active-process-title">
-                  {processData?.title || `${card.title} Process`}
-                </h3>
-                <span className="proc-tag-active">Active</span>
-              </div>
-              <p className="proc-active-process-desc">
-                {processData?.description ||
-                  "Mandatory verification workflow before triggering production deployment gate."}
-              </p>
-            </div>
-
-            <div className="proc-active-right-box">
-              <div className="proc-date-box-pill">
-                <CalendarIcon width={13} height={13} />
-                <span>{formattedDueDate}</span>
-              </div>
-              <button
-                type="button"
-                className="proc-btn-delete-card-process"
-                onClick={handleToggleProcessEnable}
-                title="Disable process"
-              >
-                🗑
-              </button>
-            </div>
-          </div>
-
-          {/* Progress Breakdown Row */}
-          <div className="proc-progress-stats-row">
-            <div className="proc-progress-label-col">
-              <span className="proc-progress-bold-txt">Progress: {stats.percent}%</span>
-              <span className="proc-progress-muted-txt">{stats.done}/{stats.total} steps completed</span>
-            </div>
-
-            <div className="proc-progress-pills-col">
-              {stats.held > 0 && (
-                <span className="proc-stat-badge stat-amber">
-                  🟡 {stats.held} on hold
-                </span>
-              )}
-              {stats.pending > 0 && (
-                <span className="proc-stat-badge stat-red">
-                  🔴 {stats.pending} pending
-                </span>
-              )}
-              {stats.done > 0 && (
-                <span className="proc-stat-badge stat-green">
-                  🟢 {stats.done} done
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Segmented Progress Track */}
-          <div className="proc-segmented-progress-track">
+      {/* 3. PROGRESS & FILTER TABS ROW */}
+      <div className="proc-progress-filter-row">
+        <div className="proc-progress-left-side">
+          <div className="proc-multi-segmented-track">
             {steps.map((s, idx) => (
               <div
                 key={s.id || idx}
-                className={`proc-track-segment ${
+                className={`proc-track-seg ${
                   s.status === "done"
-                    ? "seg-green"
+                    ? "seg-done"
                     : s.status === "held"
-                    ? "seg-amber"
-                    : "seg-gray"
+                    ? "seg-held"
+                    : "seg-todo"
                 }`}
               />
             ))}
           </div>
+          <span className="proc-progress-count-text">
+            {stats.done}/{stats.total} Completed ({stats.percent}%)
+          </span>
         </div>
-      )}
 
-      {/* 4. STEP ITEMS LIST */}
-      <div className="proc-steps-stack-container">
-        {steps.map((step, idx) => {
+        <div className="proc-filter-pills-wrap">
+          <button
+            type="button"
+            className={`proc-tab-filter-btn ${activeFilter === "all" ? "active" : ""}`}
+            onClick={() => setActiveFilter("all")}
+          >
+            All <span className="proc-tab-count">{stats.total}</span>
+          </button>
+          <button
+            type="button"
+            className={`proc-tab-filter-btn ${activeFilter === "pending" ? "active" : ""}`}
+            onClick={() => setActiveFilter("pending")}
+          >
+            Pending <span className="proc-tab-count">{stats.pending}</span>
+          </button>
+          <button
+            type="button"
+            className={`proc-tab-filter-btn tab-held ${activeFilter === "held" ? "active" : ""}`}
+            onClick={() => setActiveFilter("held")}
+          >
+            On Hold <span className="proc-tab-count count-held">{stats.held}</span>
+          </button>
+          <button
+            type="button"
+            className={`proc-tab-filter-btn tab-done ${activeFilter === "done" ? "active" : ""}`}
+            onClick={() => setActiveFilter("done")}
+          >
+            Done <span className="proc-tab-count count-done">{stats.done}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 4. STEP CARDS STACK */}
+      <div className="proc-step-cards-stack">
+        {filteredSteps.map((step, idx) => {
           const isDone = step.status === "done";
           const isHeld = step.status === "held";
-          const isPending = step.status === "pending" || !step.status;
           const holdReasons = step.holdReasons || [];
           const primaryHoldReason = holdReasons[0];
+          const assigneeId = step.assignees?.[0] || "SC";
+          const member = getMemberById(assigneeId);
+          const taggedMember = primaryHoldReason?.taggedPeople?.[0]
+            ? getMemberById(primaryHoldReason.taggedPeople[0])
+            : getMemberById("DH");
 
           return (
-            <div
-              key={step.id}
-              className={`proc-step-row-card ${
-                isHeld ? "step-held-border" : isDone ? "step-done-border" : "step-pending-border"
-              }`}
-            >
-              {/* Step Header Line */}
-              <div className="proc-step-header-line">
-                <div className="proc-step-header-left">
-                  {/* Glowing Status Dot */}
-                  <span
-                    className={`proc-step-glow-dot ${
-                      isDone ? "glow-green" : isHeld ? "glow-amber" : "glow-gray"
-                    }`}
-                  />
-
-                  {/* Checkbox */}
+            <div key={step.id} className="proc-step-card-item">
+              {/* Step Top Row */}
+              <div className="proc-step-top-line">
+                <div className="proc-step-left-heading">
                   <div
-                    className={`proc-step-checkbox-box ${isDone ? "checked" : ""}`}
+                    className={`proc-step-square-check ${isDone ? "checked" : ""}`}
                     onClick={() => handleToggleStepDone(step.id)}
                     title="Toggle done"
                   >
                     {isDone && <CheckIcon width={12} height={12} />}
                   </div>
 
-                  {/* Title & Badge */}
-                  <div className="proc-step-title-wrapper">
-                    <span className={`proc-step-name-text ${isDone ? "done-strike" : ""}`}>
-                      {idx + 1}. {step.name}
-                    </span>
-                    {isDone && <span className="proc-badge-done">Done</span>}
-                    {isHeld && <span className="proc-badge-held">Held</span>}
-                  </div>
+                  <span className={`proc-step-title-text ${isDone ? "done" : ""}`}>
+                    {idx + 1}. {step.name}
+                  </span>
                 </div>
 
-                {/* Right Step Actions */}
-                <div className="proc-step-header-right">
+                <div className="proc-step-right-meta">
+                  {step.targetDate && (
+                    <div className="proc-step-date-tag">
+                      <CalendarIcon width={11} height={11} />
+                      <span>{formatDateShort(step.targetDate)}</span>
+                    </div>
+                  )}
+
+                  <span
+                    className="proc-step-avatar-dot"
+                    style={{ background: member.bg, color: member.text }}
+                    title={member.name}
+                  >
+                    {member.initials}
+                  </span>
+
                   {isHeld ? (
                     <button
                       type="button"
-                      className="proc-btn-step-held-active"
+                      className="proc-btn-held-pill-tag"
                       onClick={() => handleResumeStep(step.id)}
                       title="Click to resume"
                     >
                       ⏸ Held
                     </button>
-                  ) : (
+                  ) : !isDone ? (
                     <button
                       type="button"
-                      className="proc-btn-step-hold-outline"
+                      className="proc-btn-hold-ghost-tag"
                       onClick={() => setHoldingStep(step)}
                     >
-                      ⏸ Hold
+                      Hold
                     </button>
-                  )}
-
-                  {step.assignees && step.assignees.length > 0 && (
-                    <span
-                      className="proc-step-avatar-circle"
-                      style={{
-                        background: getMemberById(step.assignees[0]).bg,
-                        color: getMemberById(step.assignees[0]).text,
-                      }}
-                      title={getMemberById(step.assignees[0]).name}
-                    >
-                      {getMemberById(step.assignees[0]).initials}
-                    </span>
-                  )}
+                  ) : null}
 
                   <button
                     type="button"
-                    className="proc-btn-step-delete-icon"
+                    className="proc-btn-step-delete-clean"
                     onClick={() => handleDeleteStep(step.id)}
                     title="Delete step"
                   >
-                    🗑
+                    ✕
                   </button>
                 </div>
               </div>
 
-              {/* Step Description */}
-              {step.description && !isDone && (
-                <p className="proc-step-desc-text">{step.description}</p>
-              )}
-
-              {/* Step Meta (Date + People) */}
-              <div className="proc-step-meta-chips-line">
-                {step.targetDate && (
-                  <span className="proc-step-meta-date-chip">
-                    <CalendarIcon width={12} height={12} />
-                    <span>{step.targetDate}</span>
-                  </span>
-                )}
-                {step.assignees && step.assignees.length > 0 && (
-                  <span className="proc-step-meta-assignee-chip">
-                    <span>👥</span>
-                    <span
-                      className="proc-meta-mini-avatar"
-                      style={{
-                        background: getMemberById(step.assignees[0]).bg,
-                        color: getMemberById(step.assignees[0]).text,
-                      }}
-                    >
-                      {getMemberById(step.assignees[0]).initials}
-                    </span>
-                  </span>
+              {/* Status Badge & Description Line */}
+              <div className="proc-step-badge-desc-row">
+                {isDone && <span className="proc-step-pill-done">Done</span>}
+                {isHeld && <span className="proc-step-pill-held">On Hold</span>}
+                {step.description && (
+                  <p className="proc-step-desc-text">{step.description}</p>
                 )}
               </div>
 
-              {/* Hold Reasons Section */}
-              {isHeld && (
-                <div className="proc-step-hold-reasons-wrapper">
-                  <div className="proc-hold-reasons-top-bar">
-                    <span className="proc-hold-reasons-count-title">
-                      ⏸ Hold Reasons ({holdReasons.length}):
+              {/* Embedded Hold Reason Banner */}
+              {isHeld && primaryHoldReason && (
+                <div className="proc-embedded-hold-banner">
+                  <div className="proc-hold-banner-left">
+                    <span className="proc-hold-warning-label">⚠ HOLD REASON</span>
+                    <span className="proc-hold-reason-msg" title={primaryHoldReason.reason}>
+                      {primaryHoldReason.reason}
+                    </span>
+                  </div>
+
+                  <div className="proc-hold-banner-right">
+                    <span className="proc-tagged-person-txt">
+                      Tagged: {taggedMember.name}
                     </span>
                     <button
                       type="button"
-                      className="proc-btn-add-more-hold-reason"
-                      onClick={() => setHoldingStep(step)}
+                      className="proc-btn-resume-play"
+                      onClick={() => handleResumeStep(step.id)}
                     >
-                      + Add more hold reason
+                      <PlayIcon width={10} height={10} />
+                      <span>Resume</span>
                     </button>
                   </div>
-
-                  {holdReasons.map((hr, hrIdx) => {
-                    const taggedId = hr.taggedPeople?.[0] || "DH";
-                    const taggedMem = getMemberById(taggedId);
-
-                    return (
-                      <div key={hr.id || hrIdx} className="proc-inner-hold-card-box">
-                        <div className="proc-inner-hold-text-row">
-                          <p className="proc-inner-hold-reason-msg">
-                            <span className="proc-hold-num">#{hrIdx + 1}</span> {hr.reason}
-                          </p>
-                          <button
-                            type="button"
-                            className="proc-btn-delete-reason"
-                            onClick={() => handleDeleteHoldReason(step.id, hr.id)}
-                            title="Delete reason"
-                          >
-                            🗑
-                          </button>
-                        </div>
-
-                        <div className="proc-inner-hold-tagged-row">
-                          <span className="proc-tagged-label">Tagged:</span>
-                          <span className="proc-tagged-member-badge">
-                            <span
-                              className="proc-tagged-avatar"
-                              style={{ background: taggedMem.bg, color: taggedMem.text }}
-                            >
-                              {taggedMem.initials}
-                            </span>
-                            <span className="proc-tagged-name">{taggedMem.name}</span>
-                          </span>
-
-                          <button
-                            type="button"
-                            className="proc-btn-reassign-link"
-                            onClick={() => setReassignStep(step)}
-                          >
-                            Reassign / Edit
-                          </button>
-
-                          <button
-                            type="button"
-                            className="proc-btn-resume-inline"
-                            onClick={() => handleResumeStep(step.id)}
-                          >
-                            <PlayIcon width={10} height={10} />
-                            <span>Resume</span>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
               )}
             </div>
@@ -531,16 +387,24 @@ export default function ProcessDetailView({
         })}
       </div>
 
-      {/* 5. ADD STEPS BUTTON */}
-      <div className="proc-detail-bottom-bar">
+      {/* 5. BOTTOM FOOTER BAR */}
+      <div className="proc-modal-footer-bar">
         <button
           type="button"
-          className="proc-btn-add-steps-primary"
+          className="proc-btn-add-step-primary"
           onClick={() => setShowAddStepDialog(true)}
         >
-          <PlusIcon width={14} height={14} />
-          <span>Add Steps</span>
+          <PlusIcon width={13} height={13} />
+          <span>Add Step</span>
         </button>
+
+        <div className="proc-footer-summary-indicators">
+          <span className="summary-total">{stats.total} Steps</span>
+          <span className="summary-dot">•</span>
+          <span className="summary-completed">{stats.done} Completed</span>
+          <span className="summary-dot">•</span>
+          <span className="summary-on-hold">{stats.held} On Hold</span>
+        </div>
       </div>
 
       {/* DIALOGS */}
@@ -556,46 +420,7 @@ export default function ProcessDetailView({
         onClose={() => setHoldingStep(null)}
         onSubmitHold={handleSubmitHold}
       />
-
-      {/* Reassign Dialog */}
-      {reassignStep && (
-        <div className="proc-dialog-backdrop" onClick={() => setReassignStep(null)}>
-          <div className="proc-dialog-card" onClick={(e) => e.stopPropagation()}>
-            <div className="proc-dialog-header">
-              <h3 className="proc-dialog-title">Reassign unblocker</h3>
-              <button
-                type="button"
-                className="proc-dialog-close"
-                onClick={() => setReassignStep(null)}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="proc-dialog-body">
-              <div className="proc-reassign-members-grid">
-                {getAllAvailableMembers().map((mem) => (
-                  <div
-                    key={mem.id}
-                    className="proc-reassign-member-card"
-                    onClick={() => handleReassignUnblocker(reassignStep.id, mem.id)}
-                  >
-                    <span
-                      className="proc-reassign-avatar"
-                      style={{ background: mem.bg, color: mem.text }}
-                    >
-                      {mem.initials}
-                    </span>
-                    <div>
-                      <div className="proc-reassign-name">{mem.name}</div>
-                      <div className="proc-reassign-role">{mem.role || "Member"}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
+
