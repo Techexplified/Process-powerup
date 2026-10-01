@@ -200,12 +200,12 @@ html, body {
 }
 
 .proc-search-input {
-  width: 190px;
-  height: 34px;
+  width: 170px;
+  height: 32px;
   padding: 0 26px 0 28px;
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
-  border-radius: 7px;
+  border-radius: 6px;
   color: var(--text-main);
   font-size: 12px;
   outline: none;
@@ -213,7 +213,7 @@ html, body {
 }
 
 .proc-search-input:focus {
-  width: 220px;
+  width: 200px;
   border-color: var(--primary-blue);
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
@@ -234,12 +234,12 @@ html, body {
 }
 
 .proc-member-filter-select {
-  height: 34px;
-  max-width: 150px;
+  height: 32px;
+  max-width: 140px;
   padding: 0 8px;
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
-  border-radius: 7px;
+  border-radius: 6px;
   color: var(--text-main);
   font-size: 11.5px;
   outline: none;
@@ -250,32 +250,224 @@ html, body {
   border-color: var(--primary-blue);
 }
 
+/* Layout Switcher */
+.proc-layout-switcher {
+  display: flex;
+  align-items: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.proc-layout-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.proc-layout-btn:hover {
+  color: var(--text-main);
+}
+
+.proc-layout-btn.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+/* List Tabs Bar */
+.proc-list-tabs-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: rgba(15, 23, 42, 0.6);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.proc-list-tab-pill {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.proc-list-tab-pill:hover {
+  background: var(--bg-surface-hover);
+  color: #ffffff;
+}
+
+.proc-list-tab-pill.active {
+  background: var(--primary-blue);
+  color: #ffffff;
+  border-color: var(--primary-blue);
+}
+
+.tab-pill-count {
+  font-size: 9.5px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
 /* =========================================================================
-   2. KANBAN BOARD COLUMNS & CARDS
+   2. MAIN CONTENT & VERTICAL GROUPED VIEW (NO HORIZONTAL SCROLL)
    ========================================================================= */
-.proc-board-canvas {
+.proc-main-content {
   flex: 1;
   min-height: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px 20px;
   background: var(--bg-board);
 }
 
+/* Vertical Grouped Section (Workflow Mode - Default) */
+.proc-vertical-grouped-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 100%;
+}
+
+.proc-grouped-section {
+  background: var(--bg-column);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.proc-grouped-header {
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.proc-grouped-header:hover {
+  background: var(--bg-surface-hover);
+}
+
+.proc-grouped-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.proc-grouped-arrow {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.proc-grouped-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.1px;
+}
+
+.proc-grouped-count {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+.proc-grouped-add-btn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.proc-grouped-add-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.proc-grouped-cards-grid {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.proc-grouped-empty {
+  padding: 14px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 11.5px;
+  font-style: italic;
+  grid-column: 1 / -1;
+}
+
+/* Tabs Grid View */
+.proc-tabs-grid-container {
+  width: 100%;
+}
+
+.proc-tabs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 12px;
+}
+
+.proc-tab-empty-box {
+  padding: 32px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  grid-column: 1 / -1;
+}
+
+/* Kanban Columns View */
 .proc-board-columns {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 14px;
   height: 100%;
   min-width: max-content;
+  overflow-x: auto;
 }
 
 .proc-board-column {
-  width: 290px;
+  width: 280px;
   max-height: 100%;
   background: var(--bg-column);
   border: 1px solid var(--border-subtle);
-  border-radius: 11px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
@@ -347,7 +539,7 @@ html, body {
 }
 
 .proc-column-empty {
-  padding: 20px 10px;
+  padding: 18px 10px;
   text-align: center;
   color: var(--text-dim);
   font-size: 11.5px;
@@ -359,21 +551,21 @@ html, body {
 .proc-board-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 9px;
-  padding: 11px 13px;
+  border-radius: 8px;
+  padding: 10px 12px;
   cursor: pointer;
   transition: all 0.18s ease;
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  gap: 6px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .proc-board-card:hover {
   background: var(--bg-card-hover);
   border-color: var(--border-medium);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.35);
 }
 
 .proc-board-card:focus-visible {
@@ -416,14 +608,14 @@ html, body {
   justify-content: space-between;
   gap: 8px;
   margin-top: 2px;
-  padding-top: 6px;
+  padding-top: 5px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .proc-board-card-badges {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
@@ -434,13 +626,13 @@ html, body {
 }
 
 .proc-badge-pill {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .badge-progress {
@@ -476,10 +668,10 @@ html, body {
 }
 
 .proc-board-avatar {
-  width: 20px;
-  height: 20px;
+  width: 19px;
+  height: 19px;
   border-radius: 50%;
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -1728,11 +1920,15 @@ html, body {
   }
 
   .proc-search-input {
-    width: 140px;
+    width: 130px;
   }
 
   .proc-board-column {
-    width: 260px;
+    width: 250px;
+  }
+
+  .proc-grouped-cards-grid {
+    grid-template-columns: 1fr;
   }
 
   .proc-card-modal-dialog {

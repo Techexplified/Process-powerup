@@ -20,6 +20,9 @@ export default function CanvasApp({ t }) {
   const [selectedCard, setSelectedCard] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMemberFilter, setSelectedMemberFilter] = useState("all");
+  const [selectedListTab, setSelectedListTab] = useState("all");
+  const [layoutMode, setLayoutMode] = useState("grouped"); // 'grouped' (vertical no scroll) | 'tabs' | 'kanban'
+  const [collapsedLists, setCollapsedLists] = useState({});
   const [showAddCardModal, setShowAddCardModal] = useState(false);
   const [isTrelloSynced, setIsTrelloSynced] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -29,12 +32,14 @@ export default function CanvasApp({ t }) {
     let isMounted = true;
 
     async function initData() {
-      // 1. Try to fetch live Trello Board data (lists, cards, members)
+      // 1. Fetch live Trello Board data (lists, cards, members)
       if (t) {
         const trelloData = await fetchTrelloBoardData(t);
         if (isMounted && trelloData) {
           if (trelloData.boardName) setBoardName(trelloData.boardName);
-          if (trelloData.lists && trelloData.lists.length > 0) setLists(trelloData.lists);
+          if (trelloData.lists && trelloData.lists.length > 0) {
+            setLists(trelloData.lists);
+          }
           if (trelloData.cards && trelloData.cards.length > 0) {
             setCards(trelloData.cards);
             saveBoardCards(trelloData.cards);
@@ -45,7 +50,7 @@ export default function CanvasApp({ t }) {
           setIsTrelloSynced(true);
           setLoading(false);
 
-          // If opened on a specific Trello card (e.g. card button or card back section)
+          // If opened on a specific Trello card (card button or card back section)
           if (typeof t.card === "function") {
             try {
               const currentTrelloCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due");
@@ -112,7 +117,15 @@ export default function CanvasApp({ t }) {
     setSelectedCard(null);
   }
 
-  // Filter cards by search and member
+  // Toggle list collapse in Grouped view
+  function toggleListCollapse(listId) {
+    setCollapsedLists((prev) => ({
+      ...prev,
+      [listId]: !prev[listId],
+    }));
+  }
+
+  // Filter cards by search, member, and optional list tab
   const filteredCards = cards.filter((c) => {
     const matchesSearch =
       searchQuery.trim() === "" ||
@@ -123,7 +136,12 @@ export default function CanvasApp({ t }) {
       selectedMemberFilter === "all" ||
       (c.assignees && c.assignees.includes(selectedMemberFilter));
 
-    return matchesSearch && matchesMember;
+    const matchesTab =
+      layoutMode !== "tabs" ||
+      selectedListTab === "all" ||
+      c.listId === selectedListTab;
+
+    return matchesSearch && matchesMember && matchesTab;
   });
 
   return (
@@ -142,13 +160,14 @@ export default function CanvasApp({ t }) {
               </span>
             </div>
             <p className="proc-board-subtitle">
-              Select any card to configure multi-step processes, assignees, blockers & hold reasons.
+              Configure multi-step workflows, step assignees, blockers & hold reasons.
             </p>
           </div>
         </div>
 
-        {/* Controls: Search, Member Filter, Add Card */}
+        {/* Header Controls: Search, Member Filter, Layout Switcher, Add Card */}
         <div className="proc-top-header-right">
+          {/* Search Box */}
           <div className="proc-search-box">
             <span className="proc-search-icon">🔍</span>
             <input
@@ -170,6 +189,7 @@ export default function CanvasApp({ t }) {
             )}
           </div>
 
+          {/* Member Filter Dropdown */}
           <div className="proc-member-filter-group">
             <select
               className="proc-member-filter-select"
@@ -186,6 +206,34 @@ export default function CanvasApp({ t }) {
             </select>
           </div>
 
+          {/* Modern Layout Switcher (No Horizontal Scroll!) */}
+          <div className="proc-layout-switcher" title="Switch layout view">
+            <button
+              type="button"
+              className={`proc-layout-btn ${layoutMode === "grouped" ? "active" : ""}`}
+              onClick={() => setLayoutMode("grouped")}
+              title="Grouped Lists View (Vertical scroll - No horizontal scrolling)"
+            >
+              📋 Grouped
+            </button>
+            <button
+              type="button"
+              className={`proc-layout-btn ${layoutMode === "tabs" ? "active" : ""}`}
+              onClick={() => setLayoutMode("tabs")}
+              title="List Tabs View (Filter by List)"
+            >
+              🏷️ Tabs
+            </button>
+            <button
+              type="button"
+              className={`proc-layout-btn ${layoutMode === "kanban" ? "active" : ""}`}
+              onClick={() => setLayoutMode("kanban")}
+              title="Kanban Board Columns"
+            >
+              ▦ Columns
+            </button>
+          </div>
+
           <button
             type="button"
             className="proc-btn proc-btn-primary proc-add-card-btn"
@@ -196,15 +244,124 @@ export default function CanvasApp({ t }) {
         </div>
       </header>
 
-      {/* 2. KANBAN BOARD VIEW */}
-      <main className="proc-board-canvas custom-slim-scrollbar">
+      {/* List Tabs Bar (when in Tabs mode) */}
+      {layoutMode === "tabs" && (
+        <div className="proc-list-tabs-bar custom-slim-scrollbar">
+          <button
+            type="button"
+            className={`proc-list-tab-pill ${selectedListTab === "all" ? "active" : ""}`}
+            onClick={() => setSelectedListTab("all")}
+          >
+            All Cards <span className="tab-pill-count">{filteredCards.length}</span>
+          </button>
+          {lists.map((list) => {
+            const count = cards.filter((c) => c.listId === list.id).length;
+            return (
+              <button
+                key={list.id}
+                type="button"
+                className={`proc-list-tab-pill ${selectedListTab === list.id ? "active" : ""}`}
+                onClick={() => setSelectedListTab(list.id)}
+              >
+                {list.title} <span className="tab-pill-count">{count}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 2. MAIN BOARD CONTENT */}
+      <main className="proc-main-content custom-slim-scrollbar">
         {loading ? (
           <div className="proc-loading-state">
             <div className="proc-spinner"></div>
-            <span>Loading board data...</span>
+            <span>Loading live board data...</span>
+          </div>
+        ) : layoutMode === "grouped" ? (
+          /* =========================================================
+             MODE A: VERTICAL GROUPED LIST VIEW (NO HORIZONTAL SCROLL)
+             ========================================================= */
+          <div className="proc-vertical-grouped-view">
+            {lists.map((list) => {
+              const listCards = filteredCards.filter((c) => c.listId === list.id);
+              const isCollapsed = collapsedLists[list.id];
+
+              return (
+                <section key={list.id} className="proc-grouped-section">
+                  <div
+                    className="proc-grouped-header"
+                    onClick={() => toggleListCollapse(list.id)}
+                  >
+                    <div className="proc-grouped-header-left">
+                      <span className="proc-grouped-arrow">
+                        {isCollapsed ? "▶" : "▼"}
+                      </span>
+                      <h3 className="proc-grouped-title">{list.title}</h3>
+                      <span className="proc-grouped-count">{listCards.length} cards</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="proc-grouped-add-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowAddCardModal(true);
+                      }}
+                      title={`Add card to ${list.title}`}
+                    >
+                      + Add Card
+                    </button>
+                  </div>
+
+                  {!isCollapsed && (
+                    <div className="proc-grouped-cards-grid">
+                      {listCards.length === 0 ? (
+                        <div className="proc-grouped-empty">
+                          <span>No cards in this list</span>
+                        </div>
+                      ) : (
+                        listCards.map((card) => (
+                          <BoardCard
+                            key={card.id}
+                            card={card}
+                            onSelectCard={(c) => setSelectedCard(c)}
+                            t={t}
+                          />
+                        ))
+                      )}
+                    </div>
+                  )}
+                </section>
+              );
+            })}
+          </div>
+        ) : layoutMode === "tabs" ? (
+          /* =========================================================
+             MODE B: LIST TABS GRID VIEW
+             ========================================================= */
+          <div className="proc-tabs-grid-container">
+            <div className="proc-tabs-grid">
+              {filteredCards.length === 0 ? (
+                <div className="proc-tab-empty-box">
+                  <p>No cards match the current list or filter.</p>
+                </div>
+              ) : (
+                filteredCards.map((card) => (
+                  <BoardCard
+                    key={card.id}
+                    card={card}
+                    onSelectCard={(c) => setSelectedCard(c)}
+                    t={t}
+                  />
+                ))
+              )}
+            </div>
           </div>
         ) : (
-          <div className="proc-board-columns">
+          /* =========================================================
+             MODE C: CLASSIC KANBAN COLUMNS
+             ========================================================= */
+          <div className="proc-board-columns custom-slim-scrollbar">
             {lists.map((list) => {
               const listCards = filteredCards.filter((c) => c.listId === list.id);
 
@@ -254,7 +411,6 @@ export default function CanvasApp({ t }) {
           card={selectedCard}
           onClose={() => {
             setSelectedCard(null);
-            // Re-read storage/cards so any badge updates show immediately on board cards
             setCards([...loadBoardCards()]);
           }}
           onDeleteCard={handleDeleteCard}

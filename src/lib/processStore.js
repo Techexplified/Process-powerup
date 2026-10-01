@@ -1,4 +1,5 @@
 // Central Process & Card Store with dynamic Trello board sync and LocalStorage persistence
+import { apiFetch } from "./trelloApi.js";
 
 // Palette generator for member avatars
 const MEMBER_COLORS = [
@@ -208,7 +209,7 @@ export function registerDynamicMembers(members = []) {
 }
 
 /**
- * Get member object by ID (checks dynamic Trello members first, then defaults)
+ * Get member object by ID
  */
 export function getMemberById(id) {
   if (!id) return { id: "unknown", initials: "?", name: "Unknown", bg: "#334155", text: "#cbd5e1" };
@@ -241,17 +242,16 @@ export function getAllAvailableMembers() {
 }
 
 /**
- * Fetch live data from Trello board (lists, cards, members)
+ * Robustly fetch live data from Trello board (lists, cards, members)
  */
 export async function fetchTrelloBoardData(t) {
-  if (!t || typeof t.lists !== "function" || typeof t.cards !== "function") {
-    return null;
-  }
+  if (!t) return null;
 
   try {
-    // 1. Fetch Board Info and Members
     let boardInfo = null;
     let membersList = [];
+
+    // 1. Fetch Board Info and Members via Trello client
     if (typeof t.board === "function") {
       try {
         boardInfo = await t.board("id", "name", "members");
@@ -260,7 +260,14 @@ export async function fetchTrelloBoardData(t) {
           registerDynamicMembers(membersList);
         }
       } catch (e) {
-        console.warn("Could not fetch board info:", e);
+        try {
+          boardInfo = await t.board("all");
+          if (boardInfo && boardInfo.members) {
+            registerDynamicMembers(boardInfo.members);
+          }
+        } catch (e2) {
+          console.warn("Could not fetch board info:", e2);
+        }
       }
     }
 
@@ -272,28 +279,86 @@ export async function fetchTrelloBoardData(t) {
           registerDynamicMembers([activeMember]);
         }
       } catch (e) {
-        console.warn("Could not fetch active member:", e);
+        try {
+          const activeMember = await t.member("all");
+          if (activeMember && activeMember.id) {
+            registerDynamicMembers([activeMember]);
+          }
+        } catch (e2) {}
       }
     }
 
-    // 3. Fetch Real Lists
-    const trelloLists = await t.lists("id", "name");
-    const lists = Array.isArray(trelloLists) && trelloLists.length > 0
-      ? trelloLists.map((l) => ({
+    // 3. Fetch Real Lists with fallbacks
+    let rawLists = null;
+    if (typeof t.lists === "function") {
+      try {
+        rawLists = await t.lists("all");
+      } catch (e) {
+        try {
+          rawLists = await t.lists("id", "name");
+        } catch (e2) {
+          try {
+            rawLists = await t.lists();
+          } catch (e3) {}
+        }
+      }
+    }
+
+    // 4. Fetch Real Cards with fallbacks
+    let rawCards = null;
+    if (typeof t.cards === "function") {
+      try {
+        rawCards = await t.cards("all");
+      } catch (e) {
+        try {
+          rawCards = await t.cards("id", "name", "desc", "idList", "idMembers", "labels", "due", "badges");
+        } catch (e2) {
+          try {
+            rawCards = await t.cards();
+          } catch (e3) {}
+        }
+      }
+    }
+
+    // 5. REST API Fallback if lists or cards returned empty
+    if ((!rawLists || rawLists.length === 0) && boardInfo && boardInfo.id) {
+      try {
+        const restLists = await apiFetch(t, `/boards/${boardInfo.id}/lists`, {
+          params: {
+            cards: "open",
+            card_fields: "id,name,desc,idList,idMembers,labels,due,badges",
+          },
+        });
+        if (Array.isArray(restLists) && restLists.length > 0) {
+          rawLists = restLists;
+          rawCards = [];
+          restLists.forEach((list) => {
+            if (Array.isArray(list.cards)) {
+              rawCards.push(...list.cards);
+            }
+          });
+        }
+      } catch (apiErr) {
+        console.warn("apiFetch fallback for lists failed:", apiErr);
+      }
+    }
+
+    // Map lists
+    const lists = Array.isArray(rawLists) && rawLists.length > 0
+      ? rawLists.map((l) => ({
           id: l.id,
-          title: l.name,
+          title: l.name || l.title || "List",
         }))
       : INITIAL_BOARD_LISTS;
 
-    // 4. Fetch Real Cards
-    const trelloCards = await t.cards("id", "name", "desc", "idList", "idMembers", "labels", "due", "badges");
-    const cards = Array.isArray(trelloCards)
-      ? trelloCards.map((c) => ({
+    // Map cards
+    const cards = Array.isArray(rawCards) && rawCards.length > 0
+      ? rawCards.map((c) => ({
           id: c.id,
-          listId: c.idList,
-          title: c.name,
-          description: c.desc || "",
-          assignees: c.idMembers || [],
+          listId: c.idList || c.listId || (lists[0]?.id || "list-1"),
+          title: c.name || c.title || "Card",
+          description: c.desc || c.description || "",
+          assignees: c.idMembers || c.assignees || [],
           labels: (c.labels || []).map((lbl) => ({
             name: lbl.name || lbl.color || "Label",
             color: lbl.color || "blue",
