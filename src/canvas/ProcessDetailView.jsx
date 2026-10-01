@@ -14,6 +14,7 @@ import {
   PlayIcon,
   PlusIcon,
   TrashIcon,
+  UsersIcon,
 } from "../lib/icons.jsx";
 import AddStepDialog from "./AddStepDialog.jsx";
 import HoldReasonDialog from "./HoldReasonDialog.jsx";
@@ -431,7 +432,7 @@ export default function ProcessDetailView({
 
                   {step.assignees && step.assignees.length > 0 && (
                     <div className="proc-step-assignees-chip">
-                      <span className="proc-step-users-glyph">👥</span>
+                      <UsersIcon width={13} height={13} className="proc-step-users-glyph" />
                       {step.assignees.map((memId) => {
                         const member = getMemberById(memId);
                         return (

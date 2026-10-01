@@ -3218,37 +3218,7 @@ html, body {
 }
 
 .proc-step-title-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-}
-
-.proc-step-idx {
-  font-size: 13px;
-  font-weight: 700;
-  color: #8b949e;
-}
-
-.proc-step-name-text {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.proc-step-name-text.done-strike {
-  color: #8b949e;
-  text-decoration: line-through;
-}
-
-.proc-step-header-right {
-  display: flex;
-.proc-step-title-wrapper {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   flex: 1;
@@ -3256,7 +3226,7 @@ html, body {
 }
 
 .proc-step-name-text {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   color: #ffffff;
   white-space: nowrap;
@@ -3270,24 +3240,30 @@ html, body {
 }
 
 .proc-step-pill-done {
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 1.5px 7px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
   border-radius: 9999px;
   background: #064e3b;
   color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  line-height: 1.1;
   flex-shrink: 0;
 }
 
 .proc-step-pill-held {
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 1.5px 7px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
   border-radius: 9999px;
   background: #3f2208;
   color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  line-height: 1.1;
   flex-shrink: 0;
 }
 
@@ -3345,7 +3321,7 @@ html, body {
 }
 
 .proc-step-desc-text {
-  font-size: 12px;
+  font-size: 12.5px;
   color: #8b949e;
   margin: 0;
   padding-left: 36px;
@@ -3356,9 +3332,9 @@ html, body {
 .proc-step-meta-chips-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding-left: 36px;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .proc-step-date-chip {
@@ -3377,12 +3353,13 @@ html, body {
 .proc-step-assignees-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .proc-step-users-glyph {
-  font-size: 12px;
   color: #8b949e;
+  display: inline-flex;
+  align-items: center;
 }
 
 .proc-step-avatar-circle {
@@ -3391,7 +3368,7 @@ html, body {
   border-radius: 50%;
   font-size: 9px;
   font-weight: 700;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
@@ -3403,7 +3380,7 @@ html, body {
   flex-direction: column;
   gap: 8px;
   padding-left: 36px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .proc-hold-container-header {
@@ -3554,6 +3531,4 @@ html, body {
 
 .proc-btn-add-steps-primary:hover {
   background: #1d4ed8;
-}
-
 }
