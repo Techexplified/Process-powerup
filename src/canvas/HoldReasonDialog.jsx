@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getAllAvailableMembers } from "../lib/processStore.js";
 import { PauseIcon, CloseIcon } from "../lib/icons.jsx";
 
@@ -9,8 +9,21 @@ export default function HoldReasonDialog({
   onSubmitHold,
 }) {
   const [reason, setReason] = useState("");
-  const [selectedUnblockers, setSelectedUnblockers] = useState(["DH"]);
+  const [selectedUnblockers, setSelectedUnblockers] = useState([]);
   const [error, setError] = useState("");
+
+  // Sync state whenever dialog opens for a step
+  useEffect(() => {
+    if (isOpen && step) {
+      setReason("");
+      setError("");
+      if (step.assignees && step.assignees.length > 0) {
+        setSelectedUnblockers([...step.assignees]);
+      } else {
+        setSelectedUnblockers([]);
+      }
+    }
+  }, [isOpen, step]);
 
   if (!isOpen || !step) return null;
 
@@ -39,7 +52,7 @@ export default function HoldReasonDialog({
     });
 
     setReason("");
-    setSelectedUnblockers(["DH"]);
+    setSelectedUnblockers([]);
     setError("");
     onClose();
   }

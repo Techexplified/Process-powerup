@@ -483,9 +483,8 @@ export default function ProcessDetailView({
                           },
                         ]
                     ).map((hr, hrIdx) => {
-                      const taggedMem = hr.taggedPeople?.[0]
-                        ? getMemberById(hr.taggedPeople[0])
-                        : getMemberById("DH");
+                      const taggedPeopleList =
+                        hr.taggedPeople && hr.taggedPeople.length > 0 ? hr.taggedPeople : [];
                       return (
                         <div key={hr.id || hrIdx} className="proc-hold-reason-amber-card">
                           <div className="proc-hold-reason-text-row">
@@ -505,15 +504,28 @@ export default function ProcessDetailView({
 
                           <div className="proc-hold-reason-tagged-row">
                             <span className="proc-tagged-label">Tagged:</span>
-                            <span className="proc-tagged-member-pill">
-                              <span
-                                className="proc-tagged-avatar"
-                                style={{ background: taggedMem.bg, color: taggedMem.text }}
-                              >
-                                {taggedMem.initials}
+                            {taggedPeopleList.length > 0 ? (
+                              taggedPeopleList.map((memId) => {
+                                const taggedMem = getMemberById(memId);
+                                return (
+                                  <span key={memId} className="proc-tagged-member-pill">
+                                    <span
+                                      className="proc-tagged-avatar"
+                                      style={{ background: taggedMem.bg, color: taggedMem.text }}
+                                    >
+                                      {taggedMem.initials}
+                                    </span>
+                                    <span className="proc-tagged-name">{taggedMem.name}</span>
+                                  </span>
+                                );
+                              })
+                            ) : (
+                              <span className="proc-tagged-member-pill">
+                                <span className="proc-tagged-name" style={{ color: "#8b949e" }}>
+                                  None
+                                </span>
                               </span>
-                              <span className="proc-tagged-name">{taggedMem.name}</span>
-                            </span>
+                            )}
                           </div>
                         </div>
                       );
