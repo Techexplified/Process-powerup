@@ -10,6 +10,7 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   CloseIcon,
+  PlusIcon,
 } from "../lib/icons.jsx";
 
 function getDisplayTitle(title) {
@@ -73,13 +74,38 @@ export default function ProcessMainModal({
     };
   }, [cards, t]);
 
+  // Exclude Cardlytics lists and metadata cards completely
+  const isCardlyticsText = (str) => Boolean(str && str.toLowerCase().includes("cardlytics"));
+
+  const displayLists = lists.filter((l) => {
+    const name = l.name || l.title || "";
+    return !isCardlyticsText(name);
+  });
+
+  const cardlyticsListIds = new Set(
+    lists
+      .filter((l) => isCardlyticsText(l.name || l.title))
+      .map((l) => l.id)
+  );
+
+  const cleanCards = cards.filter((c) => {
+    const listId = c.listId || c.idList;
+    if (cardlyticsListIds.has(listId)) return false;
+    const title = c.title || c.name || "";
+    const desc = c.description || c.desc || "";
+    if (isCardlyticsText(title) || isCardlyticsText(desc) || desc.toLowerCase().includes("tracked by cardlytics")) {
+      return false;
+    }
+    return true;
+  });
+
   // Compute global counts
-  const totalCardsCount = cards.length;
+  const totalCardsCount = cleanCards.length;
   let withProcessCount = 0;
   let noProcessCount = 0;
   let onHoldCount = 0;
 
-  cards.forEach((card) => {
+  cleanCards.forEach((card) => {
     const p = cardProcesses[card.id];
     if (p && p.enabled && p.steps && p.steps.length > 0) {
       withProcessCount++;
@@ -104,20 +130,42 @@ export default function ProcessMainModal({
     }));
   }
 
+  const selectedMemberObj = selectedMember === "all" ? null : members.find((m) => m.id === selectedMember);
+  const isFilteringActive = searchQuery.trim() !== "" || selectedMember !== "all" || filterMode !== "all";
+
   // Filter cards
-  const filteredCards = cards.filter((card) => {
+  const filteredCards = cleanCards.filter((card) => {
     const p = cardProcesses[card.id];
     const hasProcess = Boolean(p && p.enabled && p.steps && p.steps.length > 0);
     const isHeld = Boolean(p?.steps?.some((s) => s.status === "held"));
 
     const matchesSearch =
       searchQuery.trim() === "" ||
-      card.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (card.title && card.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (card.description && card.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesMember =
       selectedMember === "all" ||
-      (card.assignees && card.assignees.includes(selectedMember));
+      (Array.isArray(card.assignees) &&
+        card.assignees.some((a) => {
+          if (!a) return false;
+          if (a === selectedMember) return true;
+          if (typeof a === "object" && a.id === selectedMember) return true;
+          if (selectedMemberObj) {
+            const smId = (selectedMemberObj.id || "").toLowerCase();
+            const smName = (selectedMemberObj.name || "").toLowerCase();
+            const smInitials = (selectedMemberObj.initials || "").toLowerCase();
+            const smUsername = (selectedMemberObj.username || "").toLowerCase();
+            const aStr = (typeof a === "string" ? a : a.id || a.name || a.username || "").toLowerCase();
+            return (
+              aStr === smId ||
+              aStr === smName ||
+              aStr === smInitials ||
+              aStr === smUsername
+            );
+          }
+          return false;
+        }));
 
     if (!matchesSearch || !matchesMember) return false;
 
@@ -127,8 +175,6 @@ export default function ProcessMainModal({
 
     return true;
   });
-
-  const selectedMemberObj = selectedMember === "all" ? null : members.find((m) => m.id === selectedMember);
 
   return (
     <div className="proc-picker-screen">
@@ -152,16 +198,6 @@ export default function ProcessMainModal({
             <span className="proc-synced-badge">
               <span className="proc-synced-dot"></span> Synced
             </span>
-            {onClose && (
-              <button
-                type="button"
-                className="proc-top-close-btn"
-                onClick={onClose}
-                title="Close"
-              >
-                <CloseIcon width={13} height={13} />
-              </button>
-            )}
           </div>
         </div>
 
@@ -279,9 +315,36 @@ export default function ProcessMainModal({
 
       {/* SINGLE SCROLL CONTAINER FOR THE LIST */}
       <div className="proc-picker-list-container custom-slim-scrollbar">
-        {lists.map((list) => {
+        {filteredCards.length === 0 && (
+          <div className="proc-empty-filter-state">
+            <div className="proc-empty-filter-icon">🔍</div>
+            <h4 className="proc-empty-filter-title">No cards found</h4>
+            <p className="proc-empty-filter-subtitle">
+              {selectedMemberObj
+                ? `No cards assigned to ${selectedMemberObj.name} match the current filter.`
+                : searchQuery
+                ? `No cards match "${searchQuery}".`
+                : "No cards available in this view."}
+            </p>
+            {isFilteringActive && (
+              <button
+                type="button"
+                className="proc-btn-clear-filters"
+                onClick={() => {
+                  setSelectedMember("all");
+                  setSearchQuery("");
+                  setFilterMode("all");
+                }}
+              >
+                Reset filters
+              </button>
+            )}
+          </div>
+        )}
+
+        {displayLists.map((list) => {
           const listCards = filteredCards.filter((c) => c.listId === list.id);
-          if (listCards.length === 0 && filterMode !== "all") return null;
+          if (listCards.length === 0) return null;
 
           const isCollapsed = Boolean(collapsedLists[list.id]);
           const visibleLimit = expandedCardLimits[list.id] || 4;
@@ -312,9 +375,11 @@ export default function ProcessMainModal({
               >
                 <div className="proc-list-header-left">
                   <span className="proc-list-icon-box">
-                    <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                    </svg>
+                    {isCollapsed ? (
+                      <ChevronRightIcon width={13} height={13} />
+                    ) : (
+                      <ChevronDownIcon width={13} height={13} />
+                    )}
                   </span>
                   <span className="proc-list-title">{list.title}</span>
                   <span className="proc-list-count-meta">
@@ -458,7 +523,7 @@ export default function ProcessMainModal({
                               onSelectCard(card);
                             }}
                           >
-                            <span className="proc-btn-setup-icon">□</span> Set up
+                            <PlusIcon width={12} height={12} className="proc-btn-setup-icon" /> Set up
                           </button>
                         </div>
                       </div>

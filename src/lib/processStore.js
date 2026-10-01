@@ -351,20 +351,32 @@ export async function fetchTrelloBoardData(t) {
         }))
       : INITIAL_BOARD_LISTS;
 
-    // Map cards
+    // Map cards and extract all member assignments
     const cards = Array.isArray(rawCards) && rawCards.length > 0
-      ? rawCards.map((c) => ({
-          id: c.id,
-          listId: c.idList || c.listId || (lists[0]?.id || "list-1"),
-          title: c.name || c.title || "Card",
-          description: c.desc || c.description || "",
-          assignees: c.idMembers || c.assignees || [],
-          labels: (c.labels || []).map((lbl) => ({
-            name: lbl.name || lbl.color || "Label",
-            color: lbl.color || "blue",
-          })),
-          due: c.due || null,
-        }))
+      ? rawCards.map((c) => {
+          let cardAssignees = [];
+          if (Array.isArray(c.members) && c.members.length > 0) {
+            registerDynamicMembers(c.members);
+            cardAssignees = c.members.map((m) => (typeof m === "object" ? m.id : m));
+          } else if (Array.isArray(c.idMembers) && c.idMembers.length > 0) {
+            cardAssignees = c.idMembers;
+          } else if (Array.isArray(c.assignees) && c.assignees.length > 0) {
+            cardAssignees = c.assignees.map((m) => (typeof m === "object" ? m.id : m));
+          }
+
+          return {
+            id: c.id,
+            listId: c.idList || c.listId || (lists[0]?.id || "list-1"),
+            title: c.name || c.title || "Card",
+            description: c.desc || c.description || "",
+            assignees: cardAssignees,
+            labels: (c.labels || []).map((lbl) => ({
+              name: lbl.name || lbl.color || "Label",
+              color: lbl.color || "blue",
+            })),
+            due: c.due || null,
+          };
+        })
       : [];
 
     return {
