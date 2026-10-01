@@ -660,9 +660,18 @@ html, body {
   display: flex;
   flex-direction: column;
   background: #11141a;
-  padding: 20px 24px;
-  gap: 16px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.proc-detail-scroll-area {
+  flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .proc-detail-header-nav {
@@ -3509,9 +3518,14 @@ html, body {
 }
 
 .proc-detail-bottom-bar {
+  flex-shrink: 0;
+  padding: 14px 24px;
+  background: #11141a;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
-  padding-top: 6px;
+  justify-content: flex-start;
+  z-index: 20;
 }
 
 .proc-btn-add-steps-primary {

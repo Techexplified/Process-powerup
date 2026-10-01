@@ -226,15 +226,17 @@ export default function ProcessDetailView({
   const displayDesc = cleanWorkflowDescription(processData?.description, card.title);
 
   return (
-    <div className="proc-detail-view custom-slim-scrollbar">
-      {/* 1. TOP BREADCRUMB NAVIGATION */}
-      {onBack && (
-        <div className="proc-top-nav-bar">
-          <button type="button" className="proc-btn-back-link" onClick={onBack}>
-            ← Back to cards
-          </button>
-        </div>
-      )}
+    <div className="proc-detail-view">
+      {/* SCROLLABLE MAIN CONTENT */}
+      <div className="proc-detail-scroll-area custom-slim-scrollbar">
+        {/* 1. TOP BREADCRUMB NAVIGATION */}
+        {onBack && (
+          <div className="proc-top-nav-bar">
+            <button type="button" className="proc-btn-back-link" onClick={onBack}>
+              ← Back to cards
+            </button>
+          </div>
+        )}
 
       {/* 2. POWER-UP HERO BANNER */}
       <div className="proc-powerup-hero-banner">
@@ -537,8 +539,9 @@ export default function ProcessDetailView({
           );
         })}
       </div>
+      </div>
 
-      {/* 5. ADD STEPS BUTTON */}
+      {/* 5. FIXED BOTTOM FOOTER */}
       <div className="proc-detail-bottom-bar">
         <button
           type="button"
