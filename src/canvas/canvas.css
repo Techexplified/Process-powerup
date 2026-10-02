@@ -588,13 +588,13 @@ html, body {
   overflow: hidden;
 }
 
-/* Table Header & Rows Grid Layout */
+/* Table Header & Rows Grid Layout (5 Columns: Name, List, Progress, Assignee, Actions) */
 .proc-table-header-row {
   display: grid;
-  grid-template-columns: minmax(160px, 3fr) minmax(75px, 1.1fr) minmax(65px, 0.9fr) minmax(80px, 1.1fr) 34px 66px;
+  grid-template-columns: minmax(180px, 3.8fr) minmax(90px, 1.4fr) minmax(80px, 1.2fr) 38px 68px;
   align-items: center;
-  gap: 8px;
-  padding: 9px 12px;
+  gap: 10px;
+  padding: 9px 14px;
   background: #161b24;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   user-select: none;
@@ -632,10 +632,10 @@ html, body {
 
 .proc-table-row {
   display: grid;
-  grid-template-columns: minmax(160px, 3fr) minmax(75px, 1.1fr) minmax(65px, 0.9fr) minmax(80px, 1.1fr) 34px 66px;
+  grid-template-columns: minmax(180px, 3.8fr) minmax(90px, 1.4fr) minmax(80px, 1.2fr) 38px 68px;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 10px;
+  padding: 10px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   cursor: pointer;
   transition: all 0.15s ease;

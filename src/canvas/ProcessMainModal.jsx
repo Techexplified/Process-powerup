@@ -460,7 +460,6 @@ export default function ProcessMainModal({
               <div className="proc-th-col col-name">CARD NAME</div>
               <div className="proc-th-col col-list">LIST NAME</div>
               <div className="proc-th-col col-progress">PROGRESS</div>
-              <div className="proc-th-col col-status">STATUS</div>
               <div className="proc-th-col col-assignee">ASSIGNEE</div>
               <div className="proc-th-col col-actions">ACTIONS</div>
             </div>
@@ -538,33 +537,6 @@ export default function ProcessMainModal({
                         </div>
                       ) : (
                         <span className="proc-td-empty-dash">—</span>
-                      )}
-                    </div>
-
-                    {/* Col 4: Status */}
-                    <div className="proc-td-col col-status">
-                      {hasProc ? (
-                        isHeld ? (
-                          <span className="proc-table-status-pill pill-amber">
-                            <span className="proc-status-dot dot-amber"></span>
-                            {stats.held} on hold
-                          </span>
-                        ) : isAllDone ? (
-                          <span className="proc-table-status-pill pill-done">
-                            <span className="proc-status-dot dot-done"></span>
-                            Complete
-                          </span>
-                        ) : (
-                          <span className="proc-table-status-pill pill-inprogress">
-                            <span className="proc-status-dot dot-inprogress"></span>
-                            In Progress
-                          </span>
-                        )
-                      ) : (
-                        <span className="proc-table-status-pill pill-neutral">
-                          <span className="proc-status-dot dot-neutral"></span>
-                          No process
-                        </span>
                       )}
                     </div>
 
