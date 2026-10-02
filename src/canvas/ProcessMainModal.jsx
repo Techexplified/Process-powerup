@@ -32,14 +32,31 @@ export default function ProcessMainModal({
   t = null,
 }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedList, setSelectedList] = useState("all");
+  const [isListMenuOpen, setIsListMenuOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState("all");
   const [isMemberMenuOpen, setIsMemberMenuOpen] = useState(false);
   const [filterMode, setFilterMode] = useState("all"); // 'all' | 'with_process' | 'no_process' | 'on_hold'
   const [cardProcesses, setCardProcesses] = useState({});
   const [collapsedLists, setCollapsedLists] = useState({});
   const [expandedCardLimits, setExpandedCardLimits] = useState({});
+  const toolbarRef = React.useRef(null);
 
-  // Expand only first list by default
+  // Close dropdowns on click outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (toolbarRef.current && !toolbarRef.current.contains(e.target)) {
+        setIsListMenuOpen(false);
+        setIsMemberMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Expand only first list by default when in all lists mode
   useEffect(() => {
     if (lists.length > 0) {
       const initialCollapsed = {};
@@ -99,13 +116,20 @@ export default function ProcessMainModal({
     return true;
   });
 
-  // Compute global counts
-  const totalCardsCount = cleanCards.length;
+  // Filter cleanCards by selected list first
+  const scopedCards = cleanCards.filter((card) => {
+    const listId = card.listId || card.idList;
+    if (selectedList !== "all" && listId !== selectedList) return false;
+    return true;
+  });
+
+  // Compute scoped counts
+  const totalCardsCount = scopedCards.length;
   let withProcessCount = 0;
   let noProcessCount = 0;
   let onHoldCount = 0;
 
-  cleanCards.forEach((card) => {
+  scopedCards.forEach((card) => {
     const p = cardProcesses[card.id];
     if (p && p.enabled && p.steps && p.steps.length > 0) {
       withProcessCount++;
@@ -130,11 +154,12 @@ export default function ProcessMainModal({
     }));
   }
 
+  const selectedListObj = selectedList === "all" ? null : displayLists.find((l) => l.id === selectedList);
   const selectedMemberObj = selectedMember === "all" ? null : members.find((m) => m.id === selectedMember);
-  const isFilteringActive = searchQuery.trim() !== "" || selectedMember !== "all" || filterMode !== "all";
+  const isFilteringActive = searchQuery.trim() !== "" || selectedMember !== "all" || filterMode !== "all" || selectedList !== "all";
 
   // Filter cards
-  const filteredCards = cleanCards.filter((card) => {
+  const filteredCards = scopedCards.filter((card) => {
     const p = cardProcesses[card.id];
     const hasProcess = Boolean(p && p.enabled && p.steps && p.steps.length > 0);
     const isHeld = Boolean(p?.steps?.some((s) => s.status === "held"));
@@ -176,11 +201,15 @@ export default function ProcessMainModal({
     return true;
   });
 
+  const listsToRender = selectedList === "all"
+    ? displayLists
+    : displayLists.filter((l) => l.id === selectedList);
+
   return (
     <div className="proc-picker-screen">
       {/* PINNED TOP TOOLBAR */}
-      <div className="proc-picker-pinned-toolbar">
-        {/* Top Bar matching exact reference design */}
+      <div className="proc-picker-pinned-toolbar" ref={toolbarRef}>
+        {/* Top Bar */}
         <div className="proc-picker-top-bar">
           <div className="proc-brand-title-col">
             <div className="proc-brand-icon-box">
@@ -201,13 +230,13 @@ export default function ProcessMainModal({
           </div>
         </div>
 
-        {/* Search & Member Filter Bar */}
+        {/* Search, List Filter & Member Filter Bar */}
         <div className="proc-picker-filter-row">
           <div className="proc-search-field">
             <SearchIcon width={14} height={14} className="proc-search-icon" />
             <input
               type="text"
-              placeholder="Search cards"
+              placeholder="Search cards..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="proc-search-input"
@@ -223,11 +252,65 @@ export default function ProcessMainModal({
             )}
           </div>
 
+          {/* List Selector Dropdown */}
+          <div className="proc-list-filter-wrapper">
+            <button
+              type="button"
+              className={`proc-list-filter-btn ${selectedList !== "all" ? "active-filter" : ""}`}
+              onClick={() => {
+                setIsListMenuOpen(!isListMenuOpen);
+                setIsMemberMenuOpen(false);
+              }}
+            >
+              <span className="proc-filter-list-name">
+                {selectedList === "all"
+                  ? "List: All Lists"
+                  : `List: ${selectedListObj?.title || selectedListObj?.name || "Selected List"}`}
+              </span>
+              <ChevronDownIcon width={12} height={12} className="proc-filter-chevron" />
+            </button>
+
+            {isListMenuOpen && (
+              <div className="proc-list-dropdown-menu custom-slim-scrollbar">
+                <div
+                  className={`proc-list-menu-item ${selectedList === "all" ? "selected" : ""}`}
+                  onClick={() => {
+                    setSelectedList("all");
+                    setIsListMenuOpen(false);
+                  }}
+                >
+                  <span className="proc-list-menu-title">All Lists</span>
+                  <span className="proc-list-menu-count">{cleanCards.length}</span>
+                </div>
+                {displayLists.map((l) => {
+                  const lCount = cleanCards.filter((c) => (c.listId || c.idList) === l.id).length;
+                  return (
+                    <div
+                      key={l.id}
+                      className={`proc-list-menu-item ${selectedList === l.id ? "selected" : ""}`}
+                      onClick={() => {
+                        setSelectedList(l.id);
+                        setIsListMenuOpen(false);
+                      }}
+                    >
+                      <span className="proc-list-menu-title">{l.title || l.name}</span>
+                      <span className="proc-list-menu-count">{lCount}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Member Dropdown */}
           <div className="proc-member-filter-wrapper">
             <button
               type="button"
-              className="proc-member-filter-btn"
-              onClick={() => setIsMemberMenuOpen(!isMemberMenuOpen)}
+              className={`proc-member-filter-btn ${selectedMember !== "all" ? "active-filter" : ""}`}
+              onClick={() => {
+                setIsMemberMenuOpen(!isMemberMenuOpen);
+                setIsListMenuOpen(false);
+              }}
             >
               {selectedMemberObj ? (
                 <span
@@ -320,7 +403,9 @@ export default function ProcessMainModal({
             <div className="proc-empty-filter-icon">🔍</div>
             <h4 className="proc-empty-filter-title">No cards found</h4>
             <p className="proc-empty-filter-subtitle">
-              {selectedMemberObj
+              {selectedListObj
+                ? `No cards in "${selectedListObj.title || selectedListObj.name}" match the current filter.`
+                : selectedMemberObj
                 ? `No cards assigned to ${selectedMemberObj.name} match the current filter.`
                 : searchQuery
                 ? `No cards match "${searchQuery}".`
@@ -331,6 +416,7 @@ export default function ProcessMainModal({
                 type="button"
                 className="proc-btn-clear-filters"
                 onClick={() => {
+                  setSelectedList("all");
                   setSelectedMember("all");
                   setSearchQuery("");
                   setFilterMode("all");
@@ -342,12 +428,12 @@ export default function ProcessMainModal({
           </div>
         )}
 
-        {displayLists.map((list) => {
-          const listCards = filteredCards.filter((c) => c.listId === list.id);
+        {listsToRender.map((list) => {
+          const listCards = filteredCards.filter((c) => (c.listId || c.idList) === list.id);
           if (listCards.length === 0) return null;
 
-          const isCollapsed = Boolean(collapsedLists[list.id]);
-          const visibleLimit = expandedCardLimits[list.id] || 4;
+          const isCollapsed = selectedList === "all" ? Boolean(collapsedLists[list.id]) : false;
+          const visibleLimit = selectedList === "all" ? (expandedCardLimits[list.id] || 4) : 999;
           const visibleCards = listCards.slice(0, visibleLimit);
           const hasMore = listCards.length > visibleLimit;
 

@@ -242,6 +242,107 @@ html, body {
   color: #ffffff;
 }
 
+/* List Dropdown Filter */
+.proc-list-filter-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.proc-list-filter-btn {
+  height: 38px;
+  padding: 0 12px;
+  background: #161b22;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e6edf3;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+  max-width: 180px;
+}
+
+.proc-list-filter-btn:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: #1c2128;
+}
+
+.proc-list-filter-btn.active-filter,
+.proc-member-filter-btn.active-filter {
+  border-color: #388bfd;
+  background: rgba(56, 139, 253, 0.12);
+  color: #58a6ff;
+}
+
+.proc-filter-list-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.proc-list-dropdown-menu {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  min-width: 200px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #1c2128;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 4px 0;
+  z-index: 100;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+}
+
+.proc-list-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #e6edf3;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.proc-list-menu-item:hover {
+  background: #262c36;
+}
+
+.proc-list-menu-item.selected {
+  color: #58a6ff;
+  font-weight: 600;
+  background: rgba(56, 139, 253, 0.08);
+}
+
+.proc-list-menu-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.proc-list-menu-count {
+  font-size: 11.5px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #8b949e;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.proc-list-menu-item.selected .proc-list-menu-count {
+  background: rgba(88, 166, 255, 0.2);
+  color: #58a6ff;
+}
+
 /* Member Dropdown Button */
 .proc-member-filter-wrapper {
   position: relative;
