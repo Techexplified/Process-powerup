@@ -516,27 +516,19 @@ export default function ProcessMainModal({
                     {/* Col 3: Progress */}
                     <div className="proc-td-col col-progress">
                       {hasProc ? (
-                        <div className="proc-td-progress-group">
-                          <div className="proc-td-mini-dashes">
-                            {proc.steps.map((st, sIdx) => (
-                              <span
-                                key={st.id || sIdx}
-                                className={`proc-td-dash ${
-                                  st.status === "done"
-                                    ? "dash-done"
-                                    : st.status === "held"
-                                    ? "dash-held"
-                                    : "dash-todo"
-                                }`}
-                              />
-                            ))}
+                        <div className="proc-progress-box">
+                          <div className="proc-progress-bar-track">
+                            <div
+                              className={`proc-progress-bar-fill ${isHeld ? "fill-held" : isAllDone ? "fill-done" : "fill-active"}`}
+                              style={{ width: `${Math.max(6, Math.round((stats.done / stats.total) * 100))}%` }}
+                            />
                           </div>
-                          <span className="proc-td-progress-count">
+                          <span className="proc-progress-fraction">
                             {stats.done}/{stats.total}
                           </span>
                         </div>
                       ) : (
-                        <span className="proc-td-empty-dash">—</span>
+                        <span className="proc-progress-none">Not started</span>
                       )}
                     </div>
 

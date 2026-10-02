@@ -591,7 +591,7 @@ html, body {
 /* Table Header & Rows Grid Layout (5 Columns: Name, List, Progress, Assignee, Actions) */
 .proc-table-header-row {
   display: grid;
-  grid-template-columns: minmax(180px, 3.8fr) minmax(90px, 1.4fr) minmax(80px, 1.2fr) 38px 68px;
+  grid-template-columns: minmax(130px, 2.2fr) minmax(90px, 1.2fr) minmax(110px, 1.6fr) 36px 68px;
   align-items: center;
   gap: 10px;
   padding: 9px 14px;
@@ -632,7 +632,7 @@ html, body {
 
 .proc-table-row {
   display: grid;
-  grid-template-columns: minmax(180px, 3.8fr) minmax(90px, 1.4fr) minmax(80px, 1.2fr) 38px 68px;
+  grid-template-columns: minmax(130px, 2.2fr) minmax(90px, 1.2fr) minmax(110px, 1.6fr) 36px 68px;
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
@@ -670,27 +670,6 @@ html, body {
 /* Col 1: Name */
 .proc-td-col.col-name {
   gap: 8px;
-}
-
-.proc-td-icon-box {
-  width: 24px;
-  height: 24px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.proc-td-icon-box.icon-active {
-  background: rgba(56, 139, 253, 0.15);
-  color: #58a6ff;
-  border: 1px solid rgba(56, 139, 253, 0.25);
-}
-
-.proc-td-icon-box.icon-neutral {
-  background: rgba(255, 255, 255, 0.05);
-  color: #8b949e;
 }
 
 .proc-td-title-wrapper {
@@ -739,111 +718,58 @@ html, body {
 }
 
 /* Col 3: Progress */
-.proc-td-progress-group {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+.proc-td-col.col-progress {
   min-width: 0;
 }
 
-.proc-td-mini-dashes {
+.proc-progress-box {
   display: flex;
   align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
-.proc-td-dash {
-  width: 9px;
-  height: 4px;
-  border-radius: 2px;
+.proc-progress-bar-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+  min-width: 36px;
 }
 
-.proc-td-dash.dash-done {
-  background: #10b981;
+.proc-progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
 }
 
-.proc-td-dash.dash-held {
-  background: #f59e0b;
+.proc-progress-bar-fill.fill-active {
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
 }
 
-.proc-td-dash.dash-todo {
-  background: #2d333b;
+.proc-progress-bar-fill.fill-held {
+  background: linear-gradient(90deg, #d97706, #fbbf24);
 }
 
-.proc-td-progress-count {
+.proc-progress-bar-fill.fill-done {
+  background: linear-gradient(90deg, #059669, #34d399);
+}
+
+.proc-progress-fraction {
   font-size: 11px;
   font-weight: 600;
   color: #8b949e;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-.proc-td-empty-dash {
-  color: #484f58;
-  font-size: 12px;
-  padding-left: 2px;
-}
-
-/* Col 4: Status Badges */
-.proc-table-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2.5px 7px;
-  border-radius: 9999px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.proc-status-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
   flex-shrink: 0;
 }
 
-.proc-table-status-pill.pill-inprogress {
-  background: rgba(14, 116, 144, 0.2);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.28);
-}
-.proc-status-dot.dot-inprogress {
-  background: #38bdf8;
-  box-shadow: 0 0 6px #38bdf8;
-}
-
-.proc-table-status-pill.pill-amber {
-  background: rgba(180, 83, 9, 0.2);
-  color: #fbbf24;
-  border: 1px solid rgba(251, 191, 36, 0.28);
-}
-.proc-status-dot.dot-amber {
-  background: #fbbf24;
-  box-shadow: 0 0 6px #fbbf24;
-}
-
-.proc-table-status-pill.pill-done {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-  border: 1px solid rgba(52, 211, 153, 0.28);
-}
-.proc-status-dot.dot-done {
-  background: #34d399;
-  box-shadow: 0 0 6px #34d399;
-}
-
-.proc-table-status-pill.pill-neutral {
-  background: rgba(255, 255, 255, 0.05);
-  color: #8b949e;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-.proc-status-dot.dot-neutral {
-  background: #6e7681;
+.proc-progress-none {
+  font-size: 11px;
+  color: #6e7681;
+  white-space: nowrap;
 }
 
 /* Col 5: Assignee */
