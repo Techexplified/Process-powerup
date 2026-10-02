@@ -490,17 +490,8 @@ export default function ProcessMainModal({
                     className={`proc-table-row ${hasProc ? "row-has-proc" : "row-no-proc"} ${isHeld ? "row-held" : ""}`}
                     onClick={() => onSelectCard(card)}
                   >
-                    {/* Col 1: Card Name */}
+                    {/* Col 1: Card Name (Clean, direct title without square icon box) */}
                     <div className="proc-td-col col-name">
-                      <div className={`proc-td-icon-box ${hasProc ? "icon-active" : "icon-neutral"}`}>
-                        {hasProc ? (
-                          <ProcessIcon width={14} height={14} />
-                        ) : (
-                          <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="4" y="4" width="16" height="16" rx="2" />
-                          </svg>
-                        )}
-                      </div>
                       <div className="proc-td-title-wrapper">
                         <span className="proc-td-card-title">{displayTitle}</span>
                         {hasProc && proc.title && (
@@ -577,20 +568,23 @@ export default function ProcessMainModal({
                       )}
                     </div>
 
-                    {/* Col 5: Assignee */}
+                    {/* Col 5: Assignee (Icon only with hover tooltip) */}
                     <div className="proc-td-col col-assignee">
                       {memberObj ? (
-                        <div className="proc-td-assignee-cell" title={memberObj.name}>
-                          <span
-                            className="proc-td-avatar"
-                            style={{ background: memberObj.bg, color: memberObj.text }}
-                          >
-                            {memberObj.initials}
-                          </span>
-                          <span className="proc-td-member-name">{getShortMemberName(memberObj.name)}</span>
-                        </div>
+                        <span
+                          className="proc-td-avatar"
+                          style={{ background: memberObj.bg, color: memberObj.text }}
+                          title={memberObj.name}
+                        >
+                          {memberObj.initials}
+                        </span>
                       ) : (
-                        <span className="proc-td-unassigned">Unassigned</span>
+                        <span className="proc-td-avatar-unassigned" title="Unassigned">
+                          <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                          </svg>
+                        </span>
                       )}
                     </div>
 
