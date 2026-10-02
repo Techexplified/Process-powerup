@@ -37,6 +37,15 @@ function getListBadgeStyle(listIndex = 0) {
   return LIST_COLOR_PALETTES[idx];
 }
 
+function getShortMemberName(name = "") {
+  if (!name) return "";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length > 1) {
+    return `${parts[0]} ${parts[1][0]}.`;
+  }
+  return name;
+}
+
 export default function ProcessMainModal({
   boardName = "My Trello board",
   lists = [],
@@ -578,7 +587,7 @@ export default function ProcessMainModal({
                           >
                             {memberObj.initials}
                           </span>
-                          <span className="proc-td-member-name">{memberObj.name}</span>
+                          <span className="proc-td-member-name">{getShortMemberName(memberObj.name)}</span>
                         </div>
                       ) : (
                         <span className="proc-td-unassigned">Unassigned</span>
