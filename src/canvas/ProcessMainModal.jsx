@@ -22,6 +22,21 @@ function getDisplayTitle(title) {
   return trimmed;
 }
 
+const LIST_COLOR_PALETTES = [
+  { bg: "rgba(139, 92, 246, 0.18)", text: "#c4b5fd", border: "rgba(139, 92, 246, 0.35)" }, // Purple
+  { bg: "rgba(59, 130, 246, 0.18)", text: "#93c5fd", border: "rgba(59, 130, 246, 0.35)" }, // Blue
+  { bg: "rgba(16, 185, 129, 0.18)", text: "#6ee7b7", border: "rgba(16, 185, 129, 0.35)" }, // Emerald
+  { bg: "rgba(245, 158, 11, 0.18)", text: "#fcd34d", border: "rgba(245, 158, 11, 0.35)" }, // Amber
+  { bg: "rgba(236, 72, 153, 0.18)", text: "#f472b6", border: "rgba(236, 72, 153, 0.35)" }, // Pink
+  { bg: "rgba(14, 165, 233, 0.18)", text: "#7dd3fc", border: "rgba(14, 165, 233, 0.35)" }, // Sky
+  { bg: "rgba(249, 115, 22, 0.18)", text: "#fdba74", border: "rgba(249, 115, 22, 0.35)" }, // Orange
+];
+
+function getListBadgeStyle(listIndex = 0) {
+  const idx = Math.abs(listIndex) % LIST_COLOR_PALETTES.length;
+  return LIST_COLOR_PALETTES[idx];
+}
+
 export default function ProcessMainModal({
   boardName = "My Trello board",
   lists = [],
@@ -428,208 +443,180 @@ export default function ProcessMainModal({
           </div>
         )}
 
-        {listsToRender.map((list) => {
-          const listCards = filteredCards.filter((c) => (c.listId || c.idList) === list.id);
-          if (listCards.length === 0) return null;
-
-          const isCollapsed = selectedList === "all" ? Boolean(collapsedLists[list.id]) : false;
-          const visibleLimit = selectedList === "all" ? (expandedCardLimits[list.id] || 4) : 999;
-          const visibleCards = listCards.slice(0, visibleLimit);
-          const hasMore = listCards.length > visibleLimit;
-
-          let listWithProcess = 0;
-          let listOnHold = 0;
-          let listComplete = 0;
-
-          listCards.forEach((c) => {
-            const p = cardProcesses[c.id];
-            if (p && p.enabled && p.steps && p.steps.length > 0) {
-              listWithProcess++;
-              const held = p.steps.filter((s) => s.status === "held").length;
-              const done = p.steps.filter((s) => s.status === "done").length;
-              if (held > 0) listOnHold += held;
-              if (done === p.steps.length) listComplete++;
-            }
-          });
-
-          return (
-            <div key={list.id} className="proc-list-group">
-              {/* Group Header */}
-              <div
-                className="proc-list-header"
-                onClick={() => toggleCollapseList(list.id)}
-              >
-                <div className="proc-list-header-left">
-                  <span className="proc-list-icon-box">
-                    {isCollapsed ? (
-                      <ChevronRightIcon width={13} height={13} />
-                    ) : (
-                      <ChevronDownIcon width={13} height={13} />
-                    )}
-                  </span>
-                  <span className="proc-list-title">{list.title}</span>
-                  <span className="proc-list-count-meta">
-                    {listCards.length} cards · {listWithProcess} with process
-                  </span>
-                </div>
-
-                <div className="proc-list-header-right">
-                  {listOnHold > 0 && (
-                    <span className="proc-status-pill pill-amber">
-                      {listOnHold} on hold
-                    </span>
-                  )}
-                  {listComplete > 0 && (
-                    <span className="proc-status-pill pill-done">
-                      {listComplete} complete
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Group Cards */}
-              {!isCollapsed && (
-                <div className="proc-list-items">
-                  {visibleCards.map((card, cIndex) => {
-                    const proc = cardProcesses[card.id];
-                    const hasProc = Boolean(
-                      proc && proc.enabled && proc.steps && proc.steps.length > 0
-                    );
-                    const stats = hasProc ? calculateProcessStats(proc.steps) : null;
-                    const isHeld = stats && stats.held > 0;
-                    const isAllDone = stats && stats.done === stats.total;
-                    const displayTitle = getDisplayTitle(card.title);
-
-                    // Row Type 1: Card WITH a process (Highlighted outline if first card / selected)
-                    if (hasProc) {
-                      return (
-                        <div
-                          key={card.id}
-                          className={`proc-card-row with-process ${cIndex === 0 ? "highlight-active" : ""}`}
-                          onClick={() => onSelectCard(card)}
-                        >
-                          <div className="proc-card-row-left">
-                            <div className="proc-card-glyph-box glyph-active">
-                              <ProcessIcon width={14} height={14} />
-                            </div>
-                            <div className="proc-card-row-text">
-                              <h4 className="proc-card-row-title">
-                                {displayTitle || <span className="proc-untitled-fallback">Untitled card</span>}
-                              </h4>
-                              <div className="proc-card-row-subline">
-                                <span className="proc-proc-name">
-                                  {proc.title || "Deployment and verification"}
-                                </span>
-                                <div className="proc-mini-dashes">
-                                  {proc.steps.map((st, sIdx) => (
-                                    <span
-                                      key={st.id || sIdx}
-                                      className={`proc-dash-seg ${
-                                        st.status === "done"
-                                          ? "dash-done"
-                                          : st.status === "held"
-                                          ? "dash-held"
-                                          : "dash-todo"
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                                <span className="proc-dash-frac">
-                                  {stats.done}/{stats.total}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="proc-card-row-right">
-                            {isHeld && (
-                              <span className="proc-status-pill pill-amber">
-                                {stats.held} on hold
-                              </span>
-                            )}
-                            {!isHeld && !isAllDone && (
-                              <span className="proc-status-pill pill-in-progress">
-                                In progress
-                              </span>
-                            )}
-                            {isAllDone && (
-                              <span className="proc-status-pill pill-done">
-                                Complete
-                              </span>
-                            )}
-
-                            {card.assignees && card.assignees.length > 0 && (
-                              <span
-                                className="proc-member-avatar-chip"
-                                style={{
-                                  background: getMemberById(card.assignees[0]).bg,
-                                  color: getMemberById(card.assignees[0]).text,
-                                }}
-                                title={getMemberById(card.assignees[0]).name}
-                              >
-                                {getMemberById(card.assignees[0]).initials}
-                              </span>
-                            )}
-
-                            <ChevronRightIcon width={14} height={14} className="proc-row-chevron-icon" />
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    // Row Type 2: Card WITHOUT a process (Exact 2-line structure with Title + No process yet + Set up button)
-                    return (
-                      <div
-                        key={card.id}
-                        className="proc-card-row no-process"
-                        onClick={() => onSelectCard(card)}
-                      >
-                        <div className="proc-card-row-left">
-                          <div className="proc-card-glyph-box glyph-neutral">
-                            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <rect x="4" y="4" width="16" height="16" rx="2" />
-                            </svg>
-                          </div>
-                          <div className="proc-card-row-text">
-                            <h4 className="proc-card-row-title">
-                              {displayTitle || <span className="proc-untitled-fallback">Untitled card</span>}
-                            </h4>
-                            <div className="proc-card-row-subline">
-                              <span className="proc-no-proc-subtext">No process yet</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="proc-card-row-right">
-                          <button
-                            type="button"
-                            className="proc-btn-setup-outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onSelectCard(card);
-                            }}
-                          >
-                            <PlusIcon width={12} height={12} className="proc-btn-setup-icon" /> Set up
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {hasMore && (
-                    <button
-                      type="button"
-                      className="proc-show-more-link"
-                      onClick={() => showMoreForList(list.id)}
-                    >
-                      Show {listCards.length - visibleLimit} more
-                    </button>
-                  )}
-                </div>
-              )}
+        {/* LINEAR STYLE HIGH-DENSITY TABLE */}
+        {filteredCards.length > 0 && (
+          <div className="proc-linear-table-container">
+            {/* Table Header */}
+            <div className="proc-table-header-row">
+              <div className="proc-th-col col-name">CARD NAME</div>
+              <div className="proc-th-col col-list">LIST NAME</div>
+              <div className="proc-th-col col-progress">PROGRESS</div>
+              <div className="proc-th-col col-status">STATUS</div>
+              <div className="proc-th-col col-assignee">ASSIGNEE</div>
+              <div className="proc-th-col col-actions">ACTIONS</div>
             </div>
-          );
-        })}
+
+            {/* Table Body */}
+            <div className="proc-table-body">
+              {filteredCards.map((card) => {
+                const listId = card.listId || card.idList;
+                const listIdx = displayLists.findIndex((l) => l.id === listId);
+                const listObj = displayLists[listIdx] || lists.find((l) => l.id === listId) || { title: "List", name: "List" };
+                const listName = listObj.title || listObj.name || "General";
+                const listBadge = getListBadgeStyle(listIdx >= 0 ? listIdx : 0);
+
+                const proc = cardProcesses[card.id];
+                const hasProc = Boolean(proc && proc.enabled && proc.steps && proc.steps.length > 0);
+                const stats = hasProc ? calculateProcessStats(proc.steps) : null;
+                const isHeld = stats && stats.held > 0;
+                const isAllDone = stats && stats.done === stats.total;
+                const displayTitle = getDisplayTitle(card.title) || "Untitled card";
+
+                const firstAssignee = Array.isArray(card.assignees) && card.assignees[0];
+                const memberObj = firstAssignee ? getMemberById(firstAssignee) : null;
+
+                return (
+                  <div
+                    key={card.id}
+                    className={`proc-table-row ${hasProc ? "row-has-proc" : "row-no-proc"} ${isHeld ? "row-held" : ""}`}
+                    onClick={() => onSelectCard(card)}
+                  >
+                    {/* Col 1: Card Name */}
+                    <div className="proc-td-col col-name">
+                      <div className={`proc-td-icon-box ${hasProc ? "icon-active" : "icon-neutral"}`}>
+                        {hasProc ? (
+                          <ProcessIcon width={14} height={14} />
+                        ) : (
+                          <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="4" y="4" width="16" height="16" rx="2" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="proc-td-title-wrapper">
+                        <span className="proc-td-card-title">{displayTitle}</span>
+                        {hasProc && proc.title && (
+                          <span className="proc-td-proc-subtitle">{proc.title}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Col 2: List Name */}
+                    <div className="proc-td-col col-list">
+                      <span
+                        className="proc-td-list-badge"
+                        style={{
+                          backgroundColor: listBadge.bg,
+                          color: listBadge.text,
+                          borderColor: listBadge.border,
+                        }}
+                      >
+                        {listName}
+                      </span>
+                    </div>
+
+                    {/* Col 3: Progress */}
+                    <div className="proc-td-col col-progress">
+                      {hasProc ? (
+                        <div className="proc-td-progress-group">
+                          <div className="proc-td-mini-dashes">
+                            {proc.steps.map((st, sIdx) => (
+                              <span
+                                key={st.id || sIdx}
+                                className={`proc-td-dash ${
+                                  st.status === "done"
+                                    ? "dash-done"
+                                    : st.status === "held"
+                                    ? "dash-held"
+                                    : "dash-todo"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="proc-td-progress-count">
+                            {stats.done}/{stats.total}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="proc-td-empty-dash">—</span>
+                      )}
+                    </div>
+
+                    {/* Col 4: Status */}
+                    <div className="proc-td-col col-status">
+                      {hasProc ? (
+                        isHeld ? (
+                          <span className="proc-table-status-pill pill-amber">
+                            <span className="proc-status-dot dot-amber"></span>
+                            {stats.held} on hold
+                          </span>
+                        ) : isAllDone ? (
+                          <span className="proc-table-status-pill pill-done">
+                            <span className="proc-status-dot dot-done"></span>
+                            Complete
+                          </span>
+                        ) : (
+                          <span className="proc-table-status-pill pill-inprogress">
+                            <span className="proc-status-dot dot-inprogress"></span>
+                            In Progress
+                          </span>
+                        )
+                      ) : (
+                        <span className="proc-table-status-pill pill-neutral">
+                          <span className="proc-status-dot dot-neutral"></span>
+                          No process
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Col 5: Assignee */}
+                    <div className="proc-td-col col-assignee">
+                      {memberObj ? (
+                        <div className="proc-td-assignee-cell" title={memberObj.name}>
+                          <span
+                            className="proc-td-avatar"
+                            style={{ background: memberObj.bg, color: memberObj.text }}
+                          >
+                            {memberObj.initials}
+                          </span>
+                          <span className="proc-td-member-name">{memberObj.name}</span>
+                        </div>
+                      ) : (
+                        <span className="proc-td-unassigned">Unassigned</span>
+                      )}
+                    </div>
+
+                    {/* Col 6: Actions */}
+                    <div className="proc-td-col col-actions">
+                      {hasProc ? (
+                        <button
+                          type="button"
+                          className="proc-table-action-btn btn-open"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectCard(card);
+                          }}
+                        >
+                          Open
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="proc-table-action-btn btn-setup"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectCard(card);
+                          }}
+                        >
+                          <PlusIcon width={11} height={11} /> Set Up
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
