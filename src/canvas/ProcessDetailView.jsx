@@ -428,47 +428,84 @@ export default function ProcessDetailView({
                 <p className="proc-step-desc-text">{step.description}</p>
               )}
 
-              {/* Embedded Hold Reason Container (Matching Reference Design 1) */}
+              {/* Embedded Hold Reasons Section (Exact Match to Figma Wireframe) */}
               {isHeld && (
-                <div className="proc-step-hold-reasons-box">
-                  <div className="proc-hold-box-top-row">
-                    <div className="proc-hold-badge-reason-left">
-                      <span className="proc-hold-solid-badge">● HOLD</span>
-                      <span className="proc-hold-main-text">
-                        {primaryHoldReason?.reason ||
-                          "Twilio staging webhook test credentials expired. Waiting on IT SecOps renewal."}
+                <div className="proc-step-hold-section">
+                  {/* Hold Section Header: Count on left, '+ Add more hold reason' on right */}
+                  <div className="proc-hold-section-header">
+                    <div className="proc-hold-section-header-left">
+                      <span className="proc-hold-header-glyph">⏸</span>
+                      <span className="proc-hold-header-title">
+                        Hold Reasons ({holdReasons.length}):
                       </span>
                     </div>
-
-                    <button
-                      type="button"
-                      className="proc-btn-hold-resume-ghost"
-                      onClick={() => handleResumeStep(step.id)}
-                    >
-                      <PlayIcon width={10} height={10} />
-                      <span>Resume</span>
-                    </button>
+                    <div className="proc-hold-section-header-right">
+                      <button
+                        type="button"
+                        className="proc-btn-add-more-hold"
+                        onClick={() => setHoldingStep(step)}
+                      >
+                        + Add more hold reason
+                      </button>
+                      <button
+                        type="button"
+                        className="proc-btn-hold-resume-ghost"
+                        onClick={() => handleResumeStep(step.id)}
+                        title="Resolve all hold reasons and resume step"
+                      >
+                        <PlayIcon width={10} height={10} />
+                        <span>Resume</span>
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="proc-hold-box-bottom-row">
-                    <span className="proc-assigned-hold-label">Assigned to Hold:</span>
-                    <span className="proc-assigned-hold-member-pill">
-                      <span
-                        className="proc-assigned-avatar"
-                        style={{ background: taggedMember.bg, color: taggedMember.text }}
-                      >
-                        {taggedMember.initials}
-                      </span>
-                      <span className="proc-assigned-name">{taggedMember.name}</span>
-                    </span>
+                  {/* List of Individual Hold Reason Sub-Cards */}
+                  <div className="proc-hold-cards-list">
+                    {holdReasons.map((hr, hrIdx) => {
+                      const taggedIds = Array.isArray(hr.taggedPeople) && hr.taggedPeople.length > 0
+                        ? hr.taggedPeople
+                        : ["DH"];
+                      const taggedMembers = taggedIds.map((id) => getMemberById(id));
 
-                    <button
-                      type="button"
-                      className="proc-btn-reassign-link-yellow"
-                      onClick={() => setHoldingStep(step)}
-                    >
-                      Reassign / Edit
-                    </button>
+                      return (
+                        <div key={hr.id || hrIdx} className="proc-hold-reason-subcard">
+                          <div className="proc-hold-subcard-top-row">
+                            <div className="proc-hold-subcard-text-col">
+                              <span className="proc-hold-num-label">#{hrIdx + 1}</span>
+                              <span className="proc-hold-reason-body">
+                                {hr.reason || "Waiting on dependencies."}
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              className="proc-btn-delete-hold-subcard"
+                              onClick={() => handleDeleteHoldReason(step.id, hr.id)}
+                              title="Delete this hold reason"
+                            >
+                              <TrashIcon width={13} height={13} />
+                            </button>
+                          </div>
+
+                          <div className="proc-hold-subcard-tagged-row">
+                            <span className="proc-hold-tagged-label">Tagged:</span>
+                            <div className="proc-hold-tagged-members-list">
+                              {taggedMembers.map((m) => (
+                                <span key={m.id} className="proc-hold-tagged-pill">
+                                  <span
+                                    className="proc-hold-tagged-avatar"
+                                    style={{ background: m.bg, color: m.text }}
+                                  >
+                                    {m.initials}
+                                  </span>
+                                  <span className="proc-hold-tagged-name">{m.name}</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
