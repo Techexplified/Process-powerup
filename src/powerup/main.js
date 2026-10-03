@@ -105,13 +105,30 @@ TrelloPowerUp.initialize({
     };
   },
 
-  // Card Badges: Shows dynamic step progress & hold alert on front of cards
+  // Card Badges: Shows dynamic step progress & hold alert on FRONT of cards on the board
   "card-badges": async function (t) {
     try {
-      const processData = await t.get("card", "shared", "processData");
-      if (!processData || !processData.enabled || !processData.steps?.length) {
+      let processData = null;
+      try {
+        processData = await t.get("card", "shared", "processData");
+      } catch (e) {}
+
+      if (!processData && typeof window !== "undefined" && window.localStorage) {
+        try {
+          const cardInfo = await t.card("id", "name");
+          if (cardInfo && cardInfo.id) {
+            const saved = localStorage.getItem(`process_powerup_card_${cardInfo.id}`);
+            if (saved) {
+              processData = JSON.parse(saved);
+            }
+          }
+        } catch (e2) {}
+      }
+
+      if (!processData || !processData.enabled || !Array.isArray(processData.steps) || processData.steps.length === 0) {
         return [];
       }
+
       const total = processData.steps.length;
       const done = processData.steps.filter((s) => s.status === "done").length;
       const held = processData.steps.filter((s) => s.status === "held").length;
@@ -127,6 +144,66 @@ TrelloPowerUp.initialize({
       if (held > 0) {
         badges.push({
           text: `${held} on hold`,
+          color: "yellow",
+        });
+      }
+
+      return badges;
+    } catch (e) {
+      return [];
+    }
+  },
+
+  // Card Detail Badges: Shows badges below the card title inside the card view
+  "card-detail-badges": async function (t) {
+    try {
+      let processData = null;
+      try {
+        processData = await t.get("card", "shared", "processData");
+      } catch (e) {}
+
+      if (!processData && typeof window !== "undefined" && window.localStorage) {
+        try {
+          const cardInfo = await t.card("id", "name");
+          if (cardInfo && cardInfo.id) {
+            const saved = localStorage.getItem(`process_powerup_card_${cardInfo.id}`);
+            if (saved) {
+              processData = JSON.parse(saved);
+            }
+          }
+        } catch (e2) {}
+      }
+
+      if (!processData || !processData.enabled || !Array.isArray(processData.steps) || processData.steps.length === 0) {
+        return [];
+      }
+
+      const total = processData.steps.length;
+      const done = processData.steps.filter((s) => s.status === "done").length;
+      const held = processData.steps.filter((s) => s.status === "held").length;
+      const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      const badges = [
+        {
+          title: "Process",
+          text: `${done}/${total} completed (${percent}%)`,
+          color: done === total ? "green" : "blue",
+          callback: function (t) {
+            return t.modal({
+              url: "./canvas.html",
+              accentColor: "#161b22",
+              height: 630,
+              fullscreen: false,
+              title: "Process Power-Up",
+            });
+          },
+        },
+      ];
+
+      if (held > 0) {
+        badges.push({
+          title: "Status",
+          text: `⚠️ ${held} on hold`,
           color: "yellow",
         });
       }

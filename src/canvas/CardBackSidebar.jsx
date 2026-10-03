@@ -71,14 +71,19 @@ export default function CardBackSidebar({
     );
   }
 
-  // Disabled State
+  // Disabled State (Matching Figma Wireframe)
   if (!processData?.enabled) {
     return (
       <div className="proc-sidebar-widget proc-sidebar-disabled">
         <div className="proc-sidebar-header-row">
           <div className="proc-sidebar-title-group">
-            <span className="proc-sidebar-icon">⚡</span>
-            <span className="proc-sidebar-title">Process</span>
+            <span className="proc-sidebar-icon">
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#58a6ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+            </span>
+            <span className="proc-sidebar-title" style={{ letterSpacing: "0.5px", fontWeight: 700 }}>PROCESS</span>
           </div>
           <label className="proc-toggle-switch">
             <input
@@ -89,7 +94,7 @@ export default function CardBackSidebar({
             <span className="proc-toggle-slider"></span>
           </label>
         </div>
-        <p className="proc-sidebar-desc">Turn on to add steps to this card.</p>
+        <p className="proc-sidebar-desc" style={{ color: "#8b949e", fontSize: "13px", margin: "4px 0 0 0" }}>enable to add steps</p>
       </div>
     );
   }

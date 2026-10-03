@@ -267,7 +267,30 @@ export default function ProcessDetailView({
           </div>
         </div>
 
-        {/* 2. UNIFIED ACTIVE PROCESS & TELEMETRY CARD */}
+        {/* 2. INACTIVE STATE (Matching Figma Wireframe) */}
+        {!isEnabled && (
+          <div className="proc-inactive-setup-card" onClick={handleToggleProcessEnable}>
+            <div className="proc-inactive-setup-left">
+              <div className="proc-inactive-icon-box">
+                <ProcessIcon width={16} height={16} />
+              </div>
+              <div className="proc-inactive-text-col">
+                <h4 className="proc-inactive-heading">PROCESS</h4>
+                <p className="proc-inactive-subtext">enable to add steps</p>
+              </div>
+            </div>
+            <label className="proc-toggle-switch" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="checkbox"
+                checked={false}
+                onChange={handleToggleProcessEnable}
+              />
+              <span className="proc-toggle-slider"></span>
+            </label>
+          </div>
+        )}
+
+        {/* 3. UNIFIED ACTIVE PROCESS & TELEMETRY CARD */}
         {isEnabled && (
           <div className="proc-active-process-card">
             <div className="proc-active-heading-row">
