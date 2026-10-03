@@ -591,7 +591,7 @@ html, body {
 /* Table Header & Rows Grid Layout (5 Columns: Name, List, Progress, Assignee, Actions) */
 .proc-table-header-row {
   display: grid;
-  grid-template-columns: minmax(130px, 2.2fr) minmax(90px, 1.2fr) minmax(110px, 1.6fr) 36px 68px;
+  grid-template-columns: minmax(150px, 2.5fr) minmax(90px, 1.2fr) minmax(85px, 1fr) minmax(44px, 0.6fr) 68px;
   align-items: center;
   gap: 10px;
   padding: 9px 14px;
@@ -632,7 +632,7 @@ html, body {
 
 .proc-table-row {
   display: grid;
-  grid-template-columns: minmax(130px, 2.2fr) minmax(90px, 1.2fr) minmax(110px, 1.6fr) 36px 68px;
+  grid-template-columns: minmax(150px, 2.5fr) minmax(90px, 1.2fr) minmax(85px, 1fr) minmax(44px, 0.6fr) 68px;
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
@@ -723,20 +723,18 @@ html, body {
 }
 
 .proc-progress-box {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-width: 0;
+  gap: 7px;
 }
 
 .proc-progress-bar-track {
-  flex: 1;
-  height: 5px;
+  width: 38px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 9999px;
   overflow: hidden;
-  min-width: 36px;
+  flex-shrink: 0;
 }
 
 .proc-progress-bar-fill {
@@ -780,11 +778,42 @@ html, body {
   justify-self: center;
 }
 
-.proc-td-avatar {
-  width: 22px;
-  height: 22px;
+.proc-td-avatar-stack {
+  display: inline-flex;
+  align-items: center;
+}
+
+.proc-td-avatar-stack .proc-td-avatar {
+  margin-left: -6px;
+  box-shadow: 0 0 0 1.5px #13171f;
+}
+
+.proc-td-avatar-stack .proc-td-avatar:first-child {
+  margin-left: 0;
+}
+
+.proc-td-avatar-extra {
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  font-size: 9.5px;
+  background: #21262d;
+  color: #8b949e;
+  font-size: 8.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -6px;
+  box-shadow: 0 0 0 1.5px #13171f;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.proc-td-avatar {
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  font-size: 9px;
   font-weight: 700;
   display: flex;
   align-items: center;

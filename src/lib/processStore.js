@@ -480,12 +480,7 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
     description: cardDesc || "Mandatory verification workflow before triggering production deployment gate.",
     dueDate: "2026-10-12",
     status: "Draft",
-    steps: [
-      { id: "st-def-1", name: "Requirements review and design specification", status: "done", targetDate: "2026-10-02", assignees: ["SC"], holdReasons: [] },
-      { id: "st-def-2", name: "Core implementation & security audit", status: "held", targetDate: "2026-10-08", assignees: ["AR"], holdReasons: [{ id: "hr-1", reason: "API credentials expired. Waiting on IT SecOps renewal.", taggedPeople: ["DH"], createdAt: "2026-10-05" }] },
-      { id: "st-def-3", name: "Integration testing & regression suite", status: "pending", targetDate: "2026-10-10", assignees: ["ER"], holdReasons: [] },
-      { id: "st-def-4", name: "Production rollout & deployment gate verification", status: "pending", targetDate: "2026-10-12", assignees: ["MV"], holdReasons: [] },
-    ],
+    steps: [],
   };
 }
 

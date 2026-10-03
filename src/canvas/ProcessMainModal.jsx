@@ -140,11 +140,39 @@ export default function ProcessMainModal({
     return true;
   });
 
-  // Filter cleanCards by selected list first
+  const selectedListObj = selectedList === "all" ? null : displayLists.find((l) => l.id === selectedList);
+  const selectedMemberObj = selectedMember === "all" ? null : members.find((m) => m.id === selectedMember);
+  const isFilteringActive = searchQuery.trim() !== "" || selectedMember !== "all" || filterMode !== "all" || selectedList !== "all";
+
+  // Filter cleanCards by selected list & member
   const scopedCards = cleanCards.filter((card) => {
     const listId = card.listId || card.idList;
     if (selectedList !== "all" && listId !== selectedList) return false;
-    return true;
+
+    const matchesMember =
+      selectedMember === "all" ||
+      (Array.isArray(card.assignees) &&
+        card.assignees.some((a) => {
+          if (!a) return false;
+          if (a === selectedMember) return true;
+          if (typeof a === "object" && a.id === selectedMember) return true;
+          if (selectedMemberObj) {
+            const smId = (selectedMemberObj.id || "").toLowerCase();
+            const smName = (selectedMemberObj.name || "").toLowerCase();
+            const smInitials = (selectedMemberObj.initials || "").toLowerCase();
+            const smUsername = (selectedMemberObj.username || "").toLowerCase();
+            const aStr = (typeof a === "string" ? a : a.id || a.name || a.username || "").toLowerCase();
+            return (
+              aStr === smId ||
+              aStr === smName ||
+              aStr === smInitials ||
+              aStr === smUsername
+            );
+          }
+          return false;
+        }));
+
+    return matchesMember;
   });
 
   // Compute scoped counts
@@ -178,45 +206,18 @@ export default function ProcessMainModal({
     }));
   }
 
-  const selectedListObj = selectedList === "all" ? null : displayLists.find((l) => l.id === selectedList);
-  const selectedMemberObj = selectedMember === "all" ? null : members.find((m) => m.id === selectedMember);
-  const isFilteringActive = searchQuery.trim() !== "" || selectedMember !== "all" || filterMode !== "all" || selectedList !== "all";
-
   // Filter cards
   const filteredCards = scopedCards.filter((card) => {
     const p = cardProcesses[card.id];
     const hasProcess = Boolean(p && p.enabled && p.steps && p.steps.length > 0);
-    const isHeld = Boolean(p?.steps?.some((s) => s.status === "held"));
+    const isHeld = Boolean(hasProcess && p?.steps?.some((s) => s.status === "held"));
 
     const matchesSearch =
       searchQuery.trim() === "" ||
       (card.title && card.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (card.description && card.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesMember =
-      selectedMember === "all" ||
-      (Array.isArray(card.assignees) &&
-        card.assignees.some((a) => {
-          if (!a) return false;
-          if (a === selectedMember) return true;
-          if (typeof a === "object" && a.id === selectedMember) return true;
-          if (selectedMemberObj) {
-            const smId = (selectedMemberObj.id || "").toLowerCase();
-            const smName = (selectedMemberObj.name || "").toLowerCase();
-            const smInitials = (selectedMemberObj.initials || "").toLowerCase();
-            const smUsername = (selectedMemberObj.username || "").toLowerCase();
-            const aStr = (typeof a === "string" ? a : a.id || a.name || a.username || "").toLowerCase();
-            return (
-              aStr === smId ||
-              aStr === smName ||
-              aStr === smInitials ||
-              aStr === smUsername
-            );
-          }
-          return false;
-        }));
-
-    if (!matchesSearch || !matchesMember) return false;
+    if (!matchesSearch) return false;
 
     if (filterMode === "with_process") return hasProcess;
     if (filterMode === "no_process") return !hasProcess;
@@ -430,10 +431,10 @@ export default function ProcessMainModal({
               {selectedListObj
                 ? `No cards in "${selectedListObj.title || selectedListObj.name}" match the current filter.`
                 : selectedMemberObj
-                ? `No cards assigned to ${selectedMemberObj.name} match the current filter.`
-                : searchQuery
-                ? `No cards match "${searchQuery}".`
-                : "No cards available in this view."}
+                  ? `No cards assigned to ${selectedMemberObj.name} match the current filter.`
+                  : searchQuery
+                    ? `No cards match "${searchQuery}".`
+                    : "No cards available in this view."}
             </p>
             {isFilteringActive && (
               <button
@@ -480,8 +481,9 @@ export default function ProcessMainModal({
                 const isAllDone = stats && stats.done === stats.total;
                 const displayTitle = getDisplayTitle(card.title) || "Untitled card";
 
-                const firstAssignee = Array.isArray(card.assignees) && card.assignees[0];
-                const memberObj = firstAssignee ? getMemberById(firstAssignee) : null;
+                const assigneesList = (Array.isArray(card.assignees) ? card.assignees : [])
+                  .map((aId) => (typeof aId === "object" ? aId : getMemberById(aId)))
+                  .filter(Boolean);
 
                 return (
                   <div
@@ -513,14 +515,14 @@ export default function ProcessMainModal({
                       </span>
                     </div>
 
-                    {/* Col 3: Progress */}
+                    {/* Col 3: Progress (Compact, clean progress bar) */}
                     <div className="proc-td-col col-progress">
                       {hasProc ? (
                         <div className="proc-progress-box">
                           <div className="proc-progress-bar-track">
                             <div
                               className={`proc-progress-bar-fill ${isHeld ? "fill-held" : isAllDone ? "fill-done" : "fill-active"}`}
-                              style={{ width: `${Math.max(6, Math.round((stats.done / stats.total) * 100))}%` }}
+                              style={{ width: `${Math.max(8, Math.round((stats.done / stats.total) * 100))}%` }}
                             />
                           </div>
                           <span className="proc-progress-fraction">
@@ -532,16 +534,30 @@ export default function ProcessMainModal({
                       )}
                     </div>
 
-                    {/* Col 5: Assignee (Icon only with hover tooltip) */}
+                    {/* Col 5: Assignees (Stacked avatars for multiple assignees) */}
                     <div className="proc-td-col col-assignee">
-                      {memberObj ? (
-                        <span
-                          className="proc-td-avatar"
-                          style={{ background: memberObj.bg, color: memberObj.text }}
-                          title={memberObj.name}
-                        >
-                          {memberObj.initials}
-                        </span>
+                      {assigneesList.length > 0 ? (
+                        <div className="proc-td-avatar-stack" title={assigneesList.map((m) => m.name || m.initials).join(", ")}>
+                          {assigneesList.slice(0, 2).map((m, mIdx) => (
+                            <span
+                              key={m.id || mIdx}
+                              className="proc-td-avatar"
+                              style={{
+                                background: m.bg,
+                                color: m.text,
+                                zIndex: assigneesList.length - mIdx,
+                              }}
+                              title={m.name}
+                            >
+                              {m.initials}
+                            </span>
+                          ))}
+                          {assigneesList.length > 2 && (
+                            <span className="proc-td-avatar-extra" title={assigneesList.slice(2).map((m) => m.name).join(", ")}>
+                              +{assigneesList.length - 2}
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <span className="proc-td-avatar-unassigned" title="Unassigned">
                           <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
