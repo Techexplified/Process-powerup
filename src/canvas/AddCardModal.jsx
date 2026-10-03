@@ -44,7 +44,7 @@ export default function AddCardModal({
 
     setTitle("");
     setDescription("");
-    setSelectedAssignees(["SC"]);
+    setSelectedAssignees([]);
     setError("");
     onClose();
   }

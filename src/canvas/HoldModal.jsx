@@ -9,7 +9,7 @@ export default function HoldModal({
   isAdditionalReason = false,
 }) {
   const [reason, setReason] = useState("");
-  const [selectedTaggedPeople, setSelectedTaggedPeople] = useState(["DH"]);
+  const [selectedTaggedPeople, setSelectedTaggedPeople] = useState([]);
   const [error, setError] = useState("");
 
   if (!isOpen || !step) return null;
@@ -37,7 +37,7 @@ export default function HoldModal({
     });
 
     setReason("");
-    setSelectedTaggedPeople(["DH"]);
+    setSelectedTaggedPeople([]);
     setError("");
     onClose();
   }

@@ -335,12 +335,9 @@ export default function ProcessDetailView({
           const isDone = step.status === "done";
           const isHeld = step.status === "held";
           const holdReasons = step.holdReasons || [];
-          const primaryHoldReason = holdReasons[0];
-          const assigneeId = step.assignees?.[0] || "SC";
-          const member = getMemberById(assigneeId);
-          const taggedMember = primaryHoldReason?.taggedPeople?.[0]
-            ? getMemberById(primaryHoldReason.taggedPeople[0])
-            : getMemberById("DH");
+          const assigneesList = (Array.isArray(step.assignees) ? step.assignees : [])
+            .map((aId) => (typeof aId === "object" ? aId : getMemberById(aId)))
+            .filter(Boolean);
 
           return (
             <div
@@ -404,13 +401,20 @@ export default function ProcessDetailView({
                     <span>{isHeld ? "Held" : "Hold"}</span>
                   </button>
 
-                  <span
-                    className="proc-step-avatar-circle"
-                    style={{ background: member.bg, color: member.text }}
-                    title={member.name}
-                  >
-                    {member.initials}
-                  </span>
+                  {assigneesList.length > 0 && (
+                    <div className="proc-step-avatar-stack" title={assigneesList.map((m) => m.name).join(", ")}>
+                      {assigneesList.slice(0, 2).map((m, mIdx) => (
+                        <span
+                          key={m.id || mIdx}
+                          className="proc-step-avatar-circle"
+                          style={{ background: m.bg, color: m.text }}
+                          title={m.name}
+                        >
+                          {m.initials}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   <button
                     type="button"
@@ -462,10 +466,8 @@ export default function ProcessDetailView({
                   {/* List of Individual Hold Reason Sub-Cards */}
                   <div className="proc-hold-cards-list">
                     {holdReasons.map((hr, hrIdx) => {
-                      const taggedIds = Array.isArray(hr.taggedPeople) && hr.taggedPeople.length > 0
-                        ? hr.taggedPeople
-                        : ["DH"];
-                      const taggedMembers = taggedIds.map((id) => getMemberById(id));
+                      const taggedIds = Array.isArray(hr.taggedPeople) ? hr.taggedPeople : [];
+                      const taggedMembers = taggedIds.map((id) => (typeof id === "object" ? id : getMemberById(id))).filter(Boolean);
 
                       return (
                         <div key={hr.id || hrIdx} className="proc-hold-reason-subcard">
@@ -487,22 +489,24 @@ export default function ProcessDetailView({
                             </button>
                           </div>
 
-                          <div className="proc-hold-subcard-tagged-row">
-                            <span className="proc-hold-tagged-label">Tagged:</span>
-                            <div className="proc-hold-tagged-members-list">
-                              {taggedMembers.map((m) => (
-                                <span key={m.id} className="proc-hold-tagged-pill">
-                                  <span
-                                    className="proc-hold-tagged-avatar"
-                                    style={{ background: m.bg, color: m.text }}
-                                  >
-                                    {m.initials}
+                          {taggedMembers.length > 0 && (
+                            <div className="proc-hold-subcard-tagged-row">
+                              <span className="proc-hold-tagged-label">Tagged:</span>
+                              <div className="proc-hold-tagged-members-list">
+                                {taggedMembers.map((m) => (
+                                  <span key={m.id} className="proc-hold-tagged-pill">
+                                    <span
+                                      className="proc-hold-tagged-avatar"
+                                      style={{ background: m.bg, color: m.text }}
+                                    >
+                                      {m.initials}
+                                    </span>
+                                    <span className="proc-hold-tagged-name">{m.name}</span>
                                   </span>
-                                  <span className="proc-hold-tagged-name">{m.name}</span>
-                                </span>
-                              ))}
+                                ))}
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       );
                     })}

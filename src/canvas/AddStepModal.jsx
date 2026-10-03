@@ -5,7 +5,7 @@ export default function AddStepModal({ isOpen, onClose, onAddStep }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [targetDate, setTargetDate] = useState("");
-  const [selectedAssignees, setSelectedAssignees] = useState(["SC"]);
+  const [selectedAssignees, setSelectedAssignees] = useState([]);
   const [error, setError] = useState("");
 
   if (!isOpen) return null;
@@ -38,7 +38,7 @@ export default function AddStepModal({ isOpen, onClose, onAddStep }) {
     setName("");
     setDescription("");
     setTargetDate("");
-    setSelectedAssignees(["SC"]);
+    setSelectedAssignees([]);
     setError("");
     onClose();
   }

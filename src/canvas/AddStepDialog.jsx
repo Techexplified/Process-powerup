@@ -34,7 +34,7 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
       name: name.trim(),
       description: description.trim(),
       targetDate: targetDate || null,
-      assignees: selectedAssignees.length > 0 ? selectedAssignees : ["SC"],
+      assignees: selectedAssignees,
       status: "pending",
       holdReasons: [],
     });
