@@ -92,19 +92,6 @@ TrelloPowerUp.initialize({
     ];
   },
 
-  // Card Back Section: Embeds the Processes Multi-Step Workflow UI directly on the back of cards
-  "card-back-section": function (t) {
-    return {
-      title: "Processes",
-      icon: ICON_URL,
-      content: {
-        type: "iframe",
-        url: t.signUrl("./canvas.html"),
-        height: 620,
-      },
-    };
-  },
-
   // Card Badges: Shows dynamic step progress & hold alert on FRONT of cards on the board
   "card-badges": async function (t) {
     try {
