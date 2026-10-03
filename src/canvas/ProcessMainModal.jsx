@@ -421,8 +421,8 @@ export default function ProcessMainModal({
         </div>
       </div>
 
-      {/* SINGLE SCROLL CONTAINER FOR THE LIST */}
-      <div className="proc-picker-list-container custom-slim-scrollbar">
+      {/* SINGLE CONTAINER FOR THE TABLE */}
+      <div className="proc-picker-list-container">
         {filteredCards.length === 0 && (
           <div className="proc-empty-filter-state">
             <div className="proc-empty-filter-icon">🔍</div>
@@ -456,7 +456,7 @@ export default function ProcessMainModal({
         {/* LINEAR STYLE HIGH-DENSITY TABLE */}
         {filteredCards.length > 0 && (
           <div className="proc-linear-table-container">
-            {/* Table Header */}
+            {/* Table Header (Pinned / Fixed at Top) */}
             <div className="proc-table-header-row">
               <div className="proc-th-col col-name">CARD NAME</div>
               <div className="proc-th-col col-list">LIST NAME</div>
@@ -465,8 +465,8 @@ export default function ProcessMainModal({
               <div className="proc-th-col col-actions">ACTIONS</div>
             </div>
 
-            {/* Table Body */}
-            <div className="proc-table-body">
+            {/* Table Body (Internal Sleek Scrollbar) */}
+            <div className="proc-table-body custom-slim-scrollbar">
               {filteredCards.map((card) => {
                 const listId = card.listId || card.idList;
                 const listIdx = displayLists.findIndex((l) => l.id === listId);
