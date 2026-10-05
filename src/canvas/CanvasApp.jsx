@@ -74,9 +74,7 @@ export default function CanvasApp({ t }) {
                 setIsDirectCardMode(true);
               }
             }
-          } catch (e) {
-            console.warn("Could not read card context:", e);
-          }
+          } catch (e) {}
         }
 
         // 2. Fetch Board Data
@@ -149,9 +147,7 @@ export default function CanvasApp({ t }) {
           title: "Process Power-Up",
         });
         return;
-      } catch (e) {
-        console.warn("t.modal() failed, fallback to in-app view:", e);
-      }
+      } catch (e) {}
     }
     // Fallback for standalone sandbox
     setIsCardBackMode(false);

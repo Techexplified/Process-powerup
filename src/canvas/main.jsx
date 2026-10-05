@@ -16,10 +16,7 @@ if (!t) {
   t = {
     get: () => Promise.resolve(null),
     set: () => Promise.resolve(),
-    closeModal: () => {
-      console.log("[Mock] t.closeModal() called");
-      alert("Modal closed (in Trello this returns to the board).");
-    },
+    closeModal: () => {},
   };
 }
 

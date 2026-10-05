@@ -265,9 +265,7 @@ export async function fetchTrelloBoardData(t) {
           if (boardInfo && boardInfo.members) {
             registerDynamicMembers(boardInfo.members);
           }
-        } catch (e2) {
-          console.warn("Could not fetch board info:", e2);
-        }
+        } catch (e2) {}
       }
     }
 
@@ -338,9 +336,7 @@ export async function fetchTrelloBoardData(t) {
             }
           });
         }
-      } catch (apiErr) {
-        console.warn("apiFetch fallback for lists failed:", apiErr);
-      }
+      } catch (apiErr) {}
     }
 
     // Map lists
@@ -386,7 +382,6 @@ export async function fetchTrelloBoardData(t) {
       members: getAllAvailableMembers(),
     };
   } catch (err) {
-    console.warn("Failed to fetch live Trello board data, using local state:", err);
     return null;
   }
 }
@@ -400,9 +395,7 @@ export function loadBoardCards() {
     if (saved) {
       return JSON.parse(saved);
     }
-  } catch (e) {
-    console.error("Failed to load cards from storage:", e);
-  }
+  } catch (e) {}
   return INITIAL_CARDS;
 }
 
@@ -412,9 +405,7 @@ export function loadBoardCards() {
 export function saveBoardCards(cards) {
   try {
     localStorage.setItem(STORAGE_KEY_CARDS, JSON.stringify(cards));
-  } catch (e) {
-    console.error("Failed to save cards to storage:", e);
-  }
+  } catch (e) {}
 }
 
 /**
@@ -445,9 +436,7 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
           };
         }
       }
-    } catch (e) {
-      console.warn("Could not read from Trello storage:", e);
-    }
+    } catch (e) {}
   }
 
   // 2. Try loading from LocalStorage specifically for this cardId
@@ -464,9 +453,7 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
         }
       }
     }
-  } catch (e) {
-    console.error("Failed to load process for card:", cardId, e);
-  }
+  } catch (e) {}
 
   // Default clean isolated process structure for THIS card (Disabled by default)
   return {
@@ -494,17 +481,13 @@ export async function saveCardProcess(cardId, processData, t = null) {
   // 1. Save to LocalStorage specifically under this unique cardId
   try {
     localStorage.setItem(`${STORAGE_KEY_PROCESS_PREFIX}${cardId}`, JSON.stringify(dataToSave));
-  } catch (e) {
-    console.error("Failed to save process to localStorage:", e);
-  }
+  } catch (e) {}
 
   // 2. Save to Trello Power-Up card-shared storage
   if (t && typeof t.set === "function") {
     try {
       await t.set("card", "shared", "processData", dataToSave);
-    } catch (e) {
-      console.warn("Could not save to Trello storage:", e);
-    }
+    } catch (e) {}
   }
 }
 

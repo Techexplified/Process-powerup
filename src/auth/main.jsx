@@ -9,29 +9,24 @@ try {
   if (typeof TrelloPowerUp !== "undefined" && typeof TrelloPowerUp.iframe === "function") {
     t = TrelloPowerUp.iframe();
   }
-} catch (e) {
-  console.warn("TrelloPowerUp.iframe() not available in this context:", e);
-}
+} catch (e) {}
 
 // Fallback mock for local development and testing
 if (!t) {
   t = {
     get: (scope, visibility, key) =>
-      Promise.resolve(localStorage.getItem(`link_canvas_${scope}_${visibility}_${key}`)),
+      Promise.resolve(localStorage.getItem(`process_powerup_${scope}_${visibility}_${key}`)),
     set: (scope, visibility, key, val) => {
-      localStorage.setItem(`link_canvas_${scope}_${visibility}_${key}`, val);
+      localStorage.setItem(`process_powerup_${scope}_${visibility}_${key}`, val);
       return Promise.resolve();
     },
     remove: (scope, visibility, key) => {
-      localStorage.removeItem(`link_canvas_${scope}_${visibility}_${key}`);
+      localStorage.removeItem(`process_powerup_${scope}_${visibility}_${key}`);
       return Promise.resolve();
     },
     sizeTo: () => Promise.resolve(),
-    closePopup: () => {
-      console.log("[Mock] t.closePopup() called");
-    },
+    closePopup: () => {},
     modal: (opts) => {
-      console.log("[Mock] t.modal() called with opts:", opts);
       if (opts && opts.url) {
         window.open(opts.url, "_blank");
       }

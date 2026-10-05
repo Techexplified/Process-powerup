@@ -54,9 +54,7 @@ export default function CardBackSection({
               due: tCard.due,
             };
           }
-        } catch (e) {
-          console.warn("Could not fetch t.card in CardBackSection:", e);
-        }
+        } catch (e) {}
       }
 
       if (isMounted) {

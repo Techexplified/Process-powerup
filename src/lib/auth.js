@@ -60,11 +60,6 @@ export async function isAuthorized(t) {
  * @returns {string} Complete authorization URL
  */
 export function buildAuthorizeUrl(returnUrl) {
-  if (!APP_KEY || APP_KEY === "your_trello_api_key_here") {
-    console.warn(
-      "[Link Canvas] VITE_TRELLO_APP_KEY is not configured in .env. Authorization will fail until a valid key is set."
-    );
-  }
 
   const params = new URLSearchParams({
     expiration: "never",
