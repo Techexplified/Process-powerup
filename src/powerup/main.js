@@ -141,6 +141,31 @@ TrelloPowerUp.initialize({
     }
   },
 
+  // Card Back Section: Embeds the interactive Process widget on the back of every Trello card
+  "card-back-section": function (t) {
+    return {
+      title: "Process Power-Up",
+      icon: ICON_URL,
+      content: {
+        type: "iframe",
+        url: t.signUrl("./canvas.html?view=card-back-section"),
+        height: 220,
+      },
+      action: {
+        text: "Open Full View",
+        callback: function (t) {
+          return t.modal({
+            url: "./canvas.html",
+            accentColor: "#161b22",
+            height: 630,
+            fullscreen: false,
+            title: "Process Power-Up",
+          });
+        },
+      },
+    };
+  },
+
   // Card Detail Badges: Shows badges below the card title inside the card view
   "card-detail-badges": async function (t) {
     try {

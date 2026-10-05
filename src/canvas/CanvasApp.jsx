@@ -9,6 +9,7 @@ import {
 } from "../lib/processStore.js";
 import ProcessMainModal from "./ProcessMainModal.jsx";
 import ProcessDetailView from "./ProcessDetailView.jsx";
+import CardBackSection from "./CardBackSection.jsx";
 
 export default function CanvasApp({ t }) {
   const [boardName, setBoardName] = useState("My Trello board");
@@ -17,6 +18,13 @@ export default function CanvasApp({ t }) {
   const [members, setMembers] = useState(getAllAvailableMembers());
   const [selectedCard, setSelectedCard] = useState(null);
   const [isDirectCardMode, setIsDirectCardMode] = useState(false);
+  const [isCardBackMode, setIsCardBackMode] = useState(() => {
+    if (typeof window !== "undefined" && window.location) {
+      const p = new URLSearchParams(window.location.search);
+      return p.get("view") === "card-back-section" || p.get("view") === "card-back";
+    }
+    return false;
+  });
   const [loading, setLoading] = useState(true);
 
   // Initialize and check Trello context
@@ -68,9 +76,13 @@ export default function CanvasApp({ t }) {
 
       // Standalone dev preview fallback
       if (isMounted) {
-        setCards(loadBoardCards());
+        const localCards = loadBoardCards();
+        setCards(localCards);
         setLists(INITIAL_BOARD_LISTS);
         setMembers(getAllAvailableMembers());
+        if (localCards.length > 0) {
+          setSelectedCard(localCards[0]);
+        }
         setLoading(false);
       }
     }
@@ -85,6 +97,28 @@ export default function CanvasApp({ t }) {
       isMounted = false;
     };
   }, [t]);
+
+  function handleOpenFullModal(cardTarget) {
+    if (t && typeof t.modal === "function") {
+      try {
+        t.modal({
+          url: "./canvas.html",
+          accentColor: "#161b22",
+          height: 630,
+          fullscreen: false,
+          title: "Process Power-Up",
+        });
+        return;
+      } catch (e) {
+        console.warn("t.modal() failed, fallback to in-app view:", e);
+      }
+    }
+    // Fallback for standalone sandbox
+    setIsCardBackMode(false);
+    if (cardTarget) {
+      setSelectedCard(cardTarget);
+    }
+  }
 
   function handleCloseModal() {
     if (t && typeof t.closeModal === "function") {
@@ -105,7 +139,26 @@ export default function CanvasApp({ t }) {
     );
   }
 
-  // If a card is selected (or in direct card mode): Render the full Process Detail View (Screenshot 2)
+  // 1. CARD BACK SECTION VIEW (Iframe embedded in Trello card back)
+  if (isCardBackMode) {
+    const targetCard = selectedCard || cards[0] || {
+      id: "card-deploy-gate",
+      title: "Deployment Gate & Production Verification",
+      description: "Generated from Lean Canvas (Solution)",
+    };
+
+    return (
+      <div className="proc-cardback-wrapper">
+        <CardBackSection
+          card={targetCard}
+          onOpenFullView={() => handleOpenFullModal(targetCard)}
+          t={t}
+        />
+      </div>
+    );
+  }
+
+  // 2. FULL PROCESS DETAIL VIEW (In Modal popup or direct card mode)
   if (selectedCard) {
     return (
       <div className="proc-app-container custom-slim-scrollbar">
@@ -119,7 +172,7 @@ export default function CanvasApp({ t }) {
     );
   }
 
-  // Otherwise: Render the Main Board "Processes" Card Picker Modal (Screenshot 1)
+  // 3. MAIN BOARD PROCESSES PICKER (From top board button)
   return (
     <div className="proc-app-container custom-slim-scrollbar">
       <ProcessMainModal

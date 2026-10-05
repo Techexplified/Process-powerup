@@ -4174,3 +4174,486 @@ html, body {
   border-color: #58a6ff;
   color: #ffffff;
 }
+
+/* =========================================================================
+   CARD BACK SECTION EMBEDDED WIDGET & TOGGLE SWITCH
+   ========================================================================= */
+
+.proc-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.proc-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.proc-toggle-slider {
+  position: absolute;
+  inset: 0;
+  background-color: #21262d;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 20px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.proc-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #8b949e;
+  border-radius: 50%;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.proc-toggle-switch input:checked + .proc-toggle-slider {
+  background-color: #10b981;
+  border-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+}
+
+.proc-toggle-switch input:checked + .proc-toggle-slider:before {
+  transform: translateX(16px);
+  background-color: #ffffff;
+}
+
+/* Card Back Container */
+.proc-cardback-container {
+  width: 100%;
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  font-family: var(--font-family);
+  color: #f0f6fc;
+}
+
+.proc-cardback-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  font-size: 13px;
+  color: #8b949e;
+}
+
+/* Disabled State */
+.proc-cardback-disabled {
+  background: #161b22;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.proc-cardback-disabled:hover {
+  border-color: rgba(56, 139, 253, 0.4);
+  background: #1c2128;
+}
+
+.proc-cardback-disabled-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.proc-cardback-disabled-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.proc-cardback-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(56, 139, 253, 0.15);
+  border: 1px solid rgba(56, 139, 253, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #58a6ff;
+  flex-shrink: 0;
+}
+
+.proc-cardback-disabled-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.proc-cardback-disabled-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+}
+
+.proc-cardback-disabled-subtitle {
+  font-size: 12px;
+  color: #8b949e;
+  margin: 2px 0 0 0;
+}
+
+/* Active Hero Card */
+.proc-cardback-hero-card {
+  background: #161b22;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.proc-cardback-hero-card:hover {
+  border-color: rgba(56, 139, 253, 0.35);
+  background: #1a202a;
+}
+
+.proc-cardback-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.proc-cardback-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.proc-cardback-toggle-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.proc-cardback-process-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.proc-cardback-active-badge {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1.5px 8px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.proc-cardback-open-modal-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(56, 139, 253, 0.12);
+  border: 1px solid rgba(56, 139, 253, 0.3);
+  color: #58a6ff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.proc-cardback-open-modal-icon-btn:hover {
+  background: rgba(56, 139, 253, 0.22);
+  border-color: #58a6ff;
+  color: #ffffff;
+}
+
+.proc-cardback-subtitle {
+  font-size: 12.5px;
+  color: #8b949e;
+  margin: 6px 0 12px 0;
+  line-height: 1.4;
+}
+
+.proc-cardback-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.proc-cardback-progress-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.proc-cardback-progress-bold {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.proc-cardback-progress-meta {
+  color: #8b949e;
+}
+
+.proc-cardback-held-pill {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+.proc-cardback-progress-bar-track {
+  width: 100%;
+  height: 6px;
+  background: #21262d;
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+}
+
+.proc-cardback-progress-bar-fill-done {
+  height: 100%;
+  background: #10b981;
+  border-radius: 9999px;
+  transition: width 0.25s ease;
+}
+
+.proc-cardback-progress-bar-fill-held {
+  height: 100%;
+  background: #f59e0b;
+  transition: width 0.25s ease;
+}
+
+/* Steps List inside Card Back */
+.proc-cardback-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.proc-cardback-step-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #12161c;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.proc-cardback-step-item:hover {
+  background: #181d24;
+}
+
+.proc-cardback-step-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.proc-cardback-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid #8b949e;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  color: #ffffff;
+  flex-shrink: 0;
+  transition: all 0.12s ease;
+}
+
+.proc-cardback-checkbox.checked {
+  background: #10b981;
+  border-color: #10b981;
+}
+
+.proc-cardback-step-name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #e6edf3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.proc-cardback-step-name.done-strike {
+  text-decoration: line-through;
+  color: #8b949e;
+}
+
+.proc-cardback-step-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.proc-cardback-date-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  color: #8b949e;
+  background: #1f242c;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.proc-cardback-badge-held {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.proc-cardback-badge-done {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.proc-cardback-avatars-row {
+  display: flex;
+  align-items: center;
+  margin-left: 2px;
+}
+
+.proc-cardback-avatar {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #161b22;
+  margin-left: -4px;
+}
+
+.proc-cardback-avatar:first-child {
+  margin-left: 0;
+}
+
+.proc-cardback-hold-reason-banner {
+  width: 100%;
+  font-size: 11px;
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 2px solid #f59e0b;
+  padding: 3px 8px;
+  border-radius: 0 4px 4px 0;
+  margin-top: 2px;
+}
+
+/* Footer Row */
+.proc-cardback-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.proc-cardback-btn-add-steps {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.proc-cardback-btn-add-steps:hover {
+  background: #1d4ed8;
+}
+
+.proc-cardback-telemetry-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #8b949e;
+  font-weight: 500;
+}
+
+.proc-telemetry-done {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.proc-telemetry-held {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.proc-cardback-btn-open-full {
+  background: transparent;
+  border: 1px solid rgba(56, 139, 253, 0.3);
+  color: #58a6ff;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.proc-cardback-btn-open-full:hover {
+  background: rgba(56, 139, 253, 0.15);
+  border-color: #58a6ff;
+  color: #ffffff;
+}
