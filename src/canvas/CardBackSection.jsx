@@ -94,11 +94,20 @@ export default function CardBackSection({
     const defaultDesc =
       activeCard?.description || "Generated from Lean Canvas (Solution)";
 
+    const resolvedTitle =
+      processData?.title && !processData.title.includes("Assigned to Me")
+        ? processData.title
+        : defaultTitle;
+    const resolvedDesc =
+      processData?.description && !processData.description.includes("cardlytics")
+        ? processData.description
+        : defaultDesc;
+
     const updated = {
       ...processData,
       enabled: nextEnabled,
-      title: processData?.title || defaultTitle,
-      description: processData?.description || defaultDesc,
+      title: resolvedTitle,
+      description: resolvedDesc,
       status: nextEnabled ? "Active" : "Draft",
       steps: processData?.steps?.length ? processData.steps : [],
     };

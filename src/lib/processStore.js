@@ -454,12 +454,7 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
     cleanDesc = "Generated from Lean Canvas (Solution)";
   }
 
-  // Fallback to sample initial process ONLY for hardcoded mock card IDs in local standalone demo
-  if (INITIAL_PROCESS_BY_CARD[cardId]) {
-    return JSON.parse(JSON.stringify(INITIAL_PROCESS_BY_CARD[cardId]));
-  }
-
-  // Default clean process structure using this exact card's title and description
+  // Default clean isolated process structure using this exact card's title and description
   return {
     enabled: false,
     title: cardTitle ? `${cardTitle} Workflow` : "Process Workflow",
