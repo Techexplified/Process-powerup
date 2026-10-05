@@ -147,13 +147,14 @@ export default function CardBackSection({
   // Handle redirect to main popup modal
   function handleRedirectToFullModal(e) {
     if (e) e.stopPropagation();
+    const cardId = activeCard?.id || card?.id || "";
     if (onOpenFullView) {
-      onOpenFullView();
+      onOpenFullView(activeCard || card);
       return;
     }
     if (t && typeof t.modal === "function") {
       t.modal({
-        url: "./canvas.html",
+        url: `./canvas.html?cardId=${encodeURIComponent(cardId)}`,
         accentColor: "#161b22",
         height: 630,
         fullscreen: false,

@@ -79,9 +79,17 @@ TrelloPowerUp.initialize({
             });
           }
 
-          // User is authorized -> open centered modal dialog with sleek dark header
+          let cardParam = "";
+          try {
+            const cardInfo = await t.card("id", "name");
+            if (cardInfo && cardInfo.id) {
+              cardParam = `?cardId=${encodeURIComponent(cardInfo.id)}`;
+            }
+          } catch (e) {}
+
+          // User is authorized -> open centered modal dialog directly into Card Detailed View
           return t.modal({
-            url: "./canvas.html",
+            url: `./canvas.html${cardParam}`,
             accentColor: "#161b22",
             height: 630,
             fullscreen: false,
@@ -153,9 +161,17 @@ TrelloPowerUp.initialize({
       },
       action: {
         text: "Open Full View",
-        callback: function (t) {
+        callback: async function (t) {
+          let cardParam = "";
+          try {
+            const cardInfo = await t.card("id", "name");
+            if (cardInfo && cardInfo.id) {
+              cardParam = `?cardId=${encodeURIComponent(cardInfo.id)}`;
+            }
+          } catch (e) {}
+
           return t.modal({
-            url: "./canvas.html",
+            url: `./canvas.html${cardParam}`,
             accentColor: "#161b22",
             height: 630,
             fullscreen: false,
@@ -200,9 +216,17 @@ TrelloPowerUp.initialize({
           title: "Process",
           text: `${done}/${total} completed (${percent}%)`,
           color: done === total ? "green" : "blue",
-          callback: function (t) {
+          callback: async function (t) {
+            let cardParam = "";
+            try {
+              const cardInfo = await t.card("id", "name");
+              if (cardInfo && cardInfo.id) {
+                cardParam = `?cardId=${encodeURIComponent(cardInfo.id)}`;
+              }
+            } catch (e) {}
+
             return t.modal({
-              url: "./canvas.html",
+              url: `./canvas.html${cardParam}`,
               accentColor: "#161b22",
               height: 630,
               fullscreen: false,

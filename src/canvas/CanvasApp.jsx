@@ -27,17 +27,33 @@ export default function CanvasApp({ t }) {
   });
   const [loading, setLoading] = useState(true);
 
+  const urlParams = typeof window !== "undefined" && window.location ? new URLSearchParams(window.location.search) : null;
+  const cardIdFromUrl = urlParams ? urlParams.get("cardId") : null;
+
   // Initialize and check Trello context
   useEffect(() => {
     let isMounted = true;
 
     async function init() {
       if (t) {
-        // 1. FIRST check if opened inside a card context (card-button or card-back-section)
         let resolvedCard = null;
+
+        // 1. FIRST check if opened inside a card context (card-button or card-back-section)
         if (typeof t.card === "function") {
           try {
-            const activeTrelloCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due");
+            let activeTrelloCard = null;
+            try {
+              activeTrelloCard = await t.card("all");
+            } catch (e1) {
+              try {
+                activeTrelloCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due");
+              } catch (e2) {
+                try {
+                  activeTrelloCard = await t.card();
+                } catch (e3) {}
+              }
+            }
+
             if (activeTrelloCard && activeTrelloCard.id) {
               let cleanDesc = activeTrelloCard.desc || "";
               if (cleanDesc.includes("cardlytics:") || cleanDesc.includes("tracked by Cardlytics")) {
@@ -66,16 +82,28 @@ export default function CanvasApp({ t }) {
         // 2. Fetch Board Data
         const trelloData = await fetchTrelloBoardData(t);
         if (isMounted) {
+          let boardCards = [];
           if (trelloData) {
             if (trelloData.boardName) setBoardName(trelloData.boardName);
             if (trelloData.lists && trelloData.lists.length > 0) {
               setLists(trelloData.lists);
             }
             if (trelloData.cards && trelloData.cards.length > 0) {
-              setCards(trelloData.cards);
-              saveBoardCards(trelloData.cards);
+              boardCards = trelloData.cards;
+              setCards(boardCards);
+              saveBoardCards(boardCards);
             }
           }
+
+          // If cardId was passed in URL query param, find and activate that card
+          if (cardIdFromUrl) {
+            const matchedFromUrl = boardCards.find((c) => c.id === cardIdFromUrl) || (resolvedCard?.id === cardIdFromUrl ? resolvedCard : null);
+            if (matchedFromUrl) {
+              setSelectedCard(matchedFromUrl);
+              setIsDirectCardMode(true);
+            }
+          }
+
           setMembers(getAllAvailableMembers());
           setLoading(false);
         }
@@ -88,7 +116,10 @@ export default function CanvasApp({ t }) {
         setCards(localCards);
         setLists(INITIAL_BOARD_LISTS);
         setMembers(getAllAvailableMembers());
-        if (localCards.length > 0) {
+        if (cardIdFromUrl) {
+          const match = localCards.find((c) => c.id === cardIdFromUrl);
+          if (match) setSelectedCard(match);
+        } else if (localCards.length > 0) {
           setSelectedCard(localCards[0]);
         }
         setLoading(false);
@@ -104,13 +135,14 @@ export default function CanvasApp({ t }) {
     return () => {
       isMounted = false;
     };
-  }, [t]);
+  }, [t, cardIdFromUrl]);
 
   function handleOpenFullModal(cardTarget) {
+    const targetId = cardTarget?.id || selectedCard?.id || "";
     if (t && typeof t.modal === "function") {
       try {
         t.modal({
-          url: "./canvas.html",
+          url: `./canvas.html?cardId=${encodeURIComponent(targetId)}`,
           accentColor: "#161b22",
           height: 630,
           fullscreen: false,
