@@ -13,20 +13,56 @@ export default function CardBackSection({
   onAddStepClick,
   t = null,
 }) {
+  const [activeCard, setActiveCard] = useState(card);
   const [processData, setProcessData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load process for this specific card
+  // 1. Resolve exact card from Trello iframe context if available
   useEffect(() => {
     let isMounted = true;
-    if (card && card.id) {
-      loadCardProcess(card.id, t, card.title, card.description).then((data) => {
-        if (isMounted) {
-          setProcessData(data);
+
+    async function resolveCardAndProcess() {
+      let resolvedCard = card;
+
+      if (t && typeof t.card === "function") {
+        try {
+          const tCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due");
+          if (tCard && tCard.id) {
+            let cleanDesc = tCard.desc || "";
+            if (cleanDesc.includes("cardlytics:") || cleanDesc.includes("tracked by Cardlytics")) {
+              cleanDesc = cleanDesc.split("\n").filter((l) => !l.includes("cardlytics") && !l.includes("tracked by Cardlytics")).join("\n").trim();
+            }
+            resolvedCard = {
+              id: tCard.id,
+              listId: tCard.idList || "list-1",
+              title: tCard.name || "Card Workflow",
+              description: cleanDesc || "Generated from Lean Canvas (Solution)",
+              assignees: tCard.idMembers || [],
+              labels: (tCard.labels || []).map((l) => ({ name: l.name || l.color, color: l.color })),
+              due: tCard.due,
+            };
+          }
+        } catch (e) {
+          console.warn("Could not fetch t.card in CardBackSection:", e);
+        }
+      }
+
+      if (isMounted) {
+        setActiveCard(resolvedCard);
+        if (resolvedCard && resolvedCard.id) {
+          const data = await loadCardProcess(resolvedCard.id, t, resolvedCard.title, resolvedCard.description);
+          if (isMounted) {
+            setProcessData(data);
+            setLoading(false);
+          }
+        } else {
           setLoading(false);
         }
-      });
+      }
     }
+
+    resolveCardAndProcess();
+
     return () => {
       isMounted = false;
     };
@@ -44,19 +80,19 @@ export default function CardBackSection({
 
   function updateAndPersist(newData) {
     setProcessData(newData);
-    if (card && card.id) {
-      saveCardProcess(card.id, newData, t);
+    if (activeCard && activeCard.id) {
+      saveCardProcess(activeCard.id, newData, t);
     }
   }
 
   // Toggle Process Enable / Disable
   function handleToggleSwitch() {
     const nextEnabled = !processData?.enabled;
-    const defaultTitle = card?.title
-      ? `${card.title} Workflow`
+    const defaultTitle = activeCard?.title
+      ? `${activeCard.title} Workflow`
       : "Process Workflow";
     const defaultDesc =
-      card?.description || "Generated from Lean Canvas (Solution)";
+      activeCard?.description || "Generated from Lean Canvas (Solution)";
 
     const updated = {
       ...processData,
@@ -151,8 +187,16 @@ export default function CardBackSection({
   // ==========================================
   const steps = processData.steps || [];
   const stats = calculateProcessStats(steps);
-  const displayTitle = processData.title || (card?.title ? `${card.title} Workflow` : "Process Workflow");
-  const displayDesc = processData.description || card?.description || "Generated from Lean Canvas (Solution)";
+  const displayTitle =
+    processData.title && !processData.title.includes("Assigned to Me")
+      ? processData.title
+      : activeCard?.title
+      ? `${activeCard.title} Workflow`
+      : "Process Workflow";
+  const displayDesc =
+    processData.description && !processData.description.includes("cardlytics")
+      ? processData.description
+      : activeCard?.description || "Generated from Lean Canvas (Solution)";
 
   return (
     <div className="proc-cardback-container proc-cardback-active">

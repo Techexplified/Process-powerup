@@ -33,48 +33,56 @@ export default function CanvasApp({ t }) {
 
     async function init() {
       if (t) {
-        // Fetch Live Board Data
-        const trelloData = await fetchTrelloBoardData(t);
-        if (isMounted && trelloData) {
-          if (trelloData.boardName) setBoardName(trelloData.boardName);
-          if (trelloData.lists && trelloData.lists.length > 0) {
-            setLists(trelloData.lists);
+        // 1. FIRST check if opened inside a card context (card-button or card-back-section)
+        let resolvedCard = null;
+        if (typeof t.card === "function") {
+          try {
+            const activeTrelloCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due");
+            if (activeTrelloCard && activeTrelloCard.id) {
+              let cleanDesc = activeTrelloCard.desc || "";
+              if (cleanDesc.includes("cardlytics:") || cleanDesc.includes("tracked by Cardlytics")) {
+                cleanDesc = cleanDesc.split("\n").filter((l) => !l.includes("cardlytics") && !l.includes("tracked by Cardlytics")).join("\n").trim();
+              }
+
+              resolvedCard = {
+                id: activeTrelloCard.id,
+                listId: activeTrelloCard.idList || "list-1",
+                title: activeTrelloCard.name || "Card Workflow",
+                description: cleanDesc || "Generated from Lean Canvas (Solution)",
+                assignees: activeTrelloCard.idMembers || [],
+                labels: (activeTrelloCard.labels || []).map((l) => ({ name: l.name || l.color, color: l.color })),
+                due: activeTrelloCard.due,
+              };
+              if (isMounted) {
+                setSelectedCard(resolvedCard);
+                setIsDirectCardMode(true);
+              }
+            }
+          } catch (e) {
+            console.warn("Could not read card context:", e);
           }
-          if (trelloData.cards && trelloData.cards.length > 0) {
-            setCards(trelloData.cards);
-            saveBoardCards(trelloData.cards);
-          } else {
-            setCards(loadBoardCards());
+        }
+
+        // 2. Fetch Board Data
+        const trelloData = await fetchTrelloBoardData(t);
+        if (isMounted) {
+          if (trelloData) {
+            if (trelloData.boardName) setBoardName(trelloData.boardName);
+            if (trelloData.lists && trelloData.lists.length > 0) {
+              setLists(trelloData.lists);
+            }
+            if (trelloData.cards && trelloData.cards.length > 0) {
+              setCards(trelloData.cards);
+              saveBoardCards(trelloData.cards);
+            }
           }
           setMembers(getAllAvailableMembers());
           setLoading(false);
-
-          // Check if opened from card-button or card-back-section
-          if (typeof t.card === "function") {
-            try {
-              const activeTrelloCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due");
-              if (activeTrelloCard && activeTrelloCard.id) {
-                const matched = (trelloData.cards || []).find((c) => c.id === activeTrelloCard.id) || {
-                  id: activeTrelloCard.id,
-                  listId: activeTrelloCard.idList || (trelloData.lists[0]?.id || "list-1"),
-                  title: activeTrelloCard.name || "Card Workflow",
-                  description: activeTrelloCard.desc || "",
-                  assignees: activeTrelloCard.idMembers || [],
-                  labels: (activeTrelloCard.labels || []).map((l) => ({ name: l.name || l.color, color: l.color })),
-                  due: activeTrelloCard.due,
-                };
-                setSelectedCard(matched);
-                setIsDirectCardMode(true);
-              }
-            } catch (e) {
-              console.warn("Could not read card context:", e);
-            }
-          }
-          return;
         }
+        return;
       }
 
-      // Standalone dev preview fallback
+      // Standalone dev preview fallback (ONLY in local preview without Trello iframe host)
       if (isMounted) {
         const localCards = loadBoardCards();
         setCards(localCards);
@@ -141,11 +149,7 @@ export default function CanvasApp({ t }) {
 
   // 1. CARD BACK SECTION VIEW (Iframe embedded in Trello card back)
   if (isCardBackMode) {
-    const targetCard = selectedCard || cards[0] || {
-      id: "card-deploy-gate",
-      title: "Deployment Gate & Production Verification",
-      description: "Generated from Lean Canvas (Solution)",
-    };
+    const targetCard = selectedCard || (cards.length > 0 ? cards[0] : null);
 
     return (
       <div className="proc-cardback-wrapper">

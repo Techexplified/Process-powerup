@@ -445,39 +445,25 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
     console.error("Failed to load process for card:", cardId, e);
   }
 
-  // Fallback to sample initial process for known cards or cards matching sample patterns
+  // Clean any card description that might contain third-party power-up metadata (like cardlytics)
+  let cleanDesc = cardDesc || "";
+  if (cleanDesc.includes("cardlytics:") || cleanDesc.includes("tracked by Cardlytics")) {
+    cleanDesc = cleanDesc.split("\n").filter((line) => !line.includes("cardlytics") && !line.includes("tracked by Cardlytics")).join("\n").trim();
+  }
+  if (!cleanDesc) {
+    cleanDesc = "Generated from Lean Canvas (Solution)";
+  }
+
+  // Fallback to sample initial process ONLY for hardcoded mock card IDs in local standalone demo
   if (INITIAL_PROCESS_BY_CARD[cardId]) {
     return JSON.parse(JSON.stringify(INITIAL_PROCESS_BY_CARD[cardId]));
   }
 
-  // If card title matches 'Assigned to Me' or similar
-  const normalizedTitle = (cardTitle || "").toLowerCase();
-  if (normalizedTitle.includes("assigned to me") || normalizedTitle.includes("deploy")) {
-    return JSON.parse(JSON.stringify(INITIAL_PROCESS_BY_CARD["card-deploy-gate"]));
-  }
-
-  if (normalizedTitle.includes("onboarding") || normalizedTitle.includes("customer")) {
-    return {
-      enabled: true,
-      title: "Onboarding checklist",
-      description: "Step-by-step account provisioning, data migration, and welcome audit.",
-      dueDate: "2026-10-15",
-      status: "Active",
-      steps: [
-        { id: "st-1", name: "Provision tenant workspace and IAM roles", status: "done", targetDate: "2026-10-01", assignees: ["AR"], holdReasons: [] },
-        { id: "st-2", name: "Ingest customer legacy database dump", status: "done", targetDate: "2026-10-03", assignees: ["AR"], holdReasons: [] },
-        { id: "st-3", name: "Run schema migration and verify data parity", status: "done", targetDate: "2026-10-05", assignees: ["MV"], holdReasons: [] },
-        { id: "st-4", name: "Configure SSO SAML integration with customer Okta", status: "pending", targetDate: "2026-10-09", assignees: ["SC"], holdReasons: [] },
-        { id: "st-5", name: "Conduct live verification call and handoff", status: "pending", targetDate: "2026-10-15", assignees: ["AR"], holdReasons: [] },
-      ],
-    };
-  }
-
-  // Default clean process structure using actual card name
+  // Default clean process structure using this exact card's title and description
   return {
     enabled: false,
-    title: cardTitle ? `${cardTitle} Workflow` : "Deployment & Verification Process",
-    description: cardDesc || "Mandatory verification workflow before triggering production deployment gate.",
+    title: cardTitle ? `${cardTitle} Workflow` : "Process Workflow",
+    description: cleanDesc,
     dueDate: "2026-10-12",
     status: "Draft",
     steps: [],
