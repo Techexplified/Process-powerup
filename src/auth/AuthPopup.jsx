@@ -82,8 +82,9 @@ export default function AuthPopup({ t }) {
     if (t && typeof t.modal === "function") {
       t.modal({
         url: "./canvas.html",
-        accentColor: "#181d22",
-        fullscreen: true,
+        accentColor: "#161b22",
+        height: 630,
+        fullscreen: false,
         title: "Process Power-Up",
       });
     }
