@@ -423,28 +423,6 @@ export function saveBoardCards(cards) {
 export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc = "") {
   if (!cardId) return null;
 
-  // 1. Try loading from Trello Power-Up card-shared storage
-  if (t && typeof t.get === "function") {
-    try {
-      const trelloData = await t.get("card", "shared", "processData");
-      if (trelloData && trelloData.enabled !== undefined) {
-        return trelloData;
-      }
-    } catch (e) {
-      console.warn("Could not read from Trello storage:", e);
-    }
-  }
-
-  // 2. Try loading from LocalStorage
-  try {
-    const saved = localStorage.getItem(`${STORAGE_KEY_PROCESS_PREFIX}${cardId}`);
-    if (saved) {
-      return JSON.parse(saved);
-    }
-  } catch (e) {
-    console.error("Failed to load process for card:", cardId, e);
-  }
-
   // Clean any card description that might contain third-party power-up metadata (like cardlytics)
   let cleanDesc = cardDesc || "";
   if (cleanDesc.includes("cardlytics:") || cleanDesc.includes("tracked by Cardlytics")) {
@@ -454,8 +432,45 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
     cleanDesc = "Generated from Lean Canvas (Solution)";
   }
 
-  // Default clean isolated process structure using this exact card's title and description
+  // 1. Try loading from Trello Power-Up card-shared storage
+  if (t && typeof t.get === "function") {
+    try {
+      const trelloData = await t.get("card", "shared", "processData");
+      if (trelloData && trelloData.enabled !== undefined) {
+        // Enforce card isolation: if data was tagged with a cardId, ensure it matches this card
+        if (!trelloData.cardId || trelloData.cardId === cardId) {
+          return {
+            ...trelloData,
+            cardId: cardId,
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("Could not read from Trello storage:", e);
+    }
+  }
+
+  // 2. Try loading from LocalStorage specifically for this cardId
+  try {
+    const saved = localStorage.getItem(`${STORAGE_KEY_PROCESS_PREFIX}${cardId}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.enabled !== undefined) {
+        if (!parsed.cardId || parsed.cardId === cardId) {
+          return {
+            ...parsed,
+            cardId: cardId,
+          };
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load process for card:", cardId, e);
+  }
+
+  // Default clean isolated process structure for THIS card (Disabled by default)
   return {
+    cardId: cardId,
     enabled: false,
     title: cardTitle ? `${cardTitle} Workflow` : "Process Workflow",
     description: cleanDesc,
@@ -471,9 +486,14 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
 export async function saveCardProcess(cardId, processData, t = null) {
   if (!cardId) return;
 
-  // 1. Save to LocalStorage
+  const dataToSave = {
+    ...processData,
+    cardId: cardId, // Strictly associate with this exact card
+  };
+
+  // 1. Save to LocalStorage specifically under this unique cardId
   try {
-    localStorage.setItem(`${STORAGE_KEY_PROCESS_PREFIX}${cardId}`, JSON.stringify(processData));
+    localStorage.setItem(`${STORAGE_KEY_PROCESS_PREFIX}${cardId}`, JSON.stringify(dataToSave));
   } catch (e) {
     console.error("Failed to save process to localStorage:", e);
   }
@@ -481,7 +501,7 @@ export async function saveCardProcess(cardId, processData, t = null) {
   // 2. Save to Trello Power-Up card-shared storage
   if (t && typeof t.set === "function") {
     try {
-      await t.set("card", "shared", "processData", processData);
+      await t.set("card", "shared", "processData", dataToSave);
     } catch (e) {
       console.warn("Could not save to Trello storage:", e);
     }

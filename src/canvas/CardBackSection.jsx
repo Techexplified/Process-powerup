@@ -26,7 +26,19 @@ export default function CardBackSection({
 
       if (t && typeof t.card === "function") {
         try {
-          const tCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due");
+          let tCard = null;
+          try {
+            tCard = await t.card("all");
+          } catch (e1) {
+            try {
+              tCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due");
+            } catch (e2) {
+              try {
+                tCard = await t.card();
+              } catch (e3) {}
+            }
+          }
+
           if (tCard && tCard.id) {
             let cleanDesc = tCard.desc || "";
             if (cleanDesc.includes("cardlytics:") || cleanDesc.includes("tracked by Cardlytics")) {
