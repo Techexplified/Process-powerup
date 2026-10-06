@@ -39,15 +39,15 @@ export default function CanvasApp({ t }) {
         let resolvedCard = null;
 
         // 1. FIRST check if opened inside a card context (card-button or card-back-section)
-        let hasCardContext = isCardBackMode || Boolean(cardIdFromUrl);
+        let activeCardId = cardIdFromUrl;
         try {
           if (typeof t.getContext === "function") {
             const ctx = t.getContext();
-            if (ctx && ctx.card) hasCardContext = true;
+            if (ctx && ctx.card) activeCardId = ctx.card;
           }
         } catch (e) {}
 
-        if (hasCardContext && typeof t.card === "function") {
+        if (typeof t.card === "function" && (isCardBackMode || activeCardId)) {
           try {
             let activeTrelloCard = null;
             try {
@@ -97,13 +97,17 @@ export default function CanvasApp({ t }) {
             }
           }
 
-          // If cardId was passed in URL query param, find and activate that card
-          if (cardIdFromUrl) {
-            const matchedFromUrl = boardCards.find((c) => c.id === cardIdFromUrl) || (resolvedCard?.id === cardIdFromUrl ? resolvedCard : null);
+          // If card was specified or resolved, find and activate that exact card
+          const targetId = cardIdFromUrl || activeCardId;
+          if (targetId) {
+            const matchedFromUrl = boardCards.find((c) => c.id === targetId) || (resolvedCard?.id === targetId ? resolvedCard : null);
             if (matchedFromUrl) {
               setSelectedCard(matchedFromUrl);
               setIsDirectCardMode(true);
             }
+          } else if (resolvedCard) {
+            setSelectedCard(resolvedCard);
+            setIsDirectCardMode(true);
           }
 
           setMembers(getAllAvailableMembers());
@@ -137,7 +141,7 @@ export default function CanvasApp({ t }) {
     return () => {
       isMounted = false;
     };
-  }, [t, cardIdFromUrl]);
+  }, [t, cardIdFromUrl, isCardBackMode]);
 
   function handleOpenFullModal(cardTarget) {
     const targetId = cardTarget?.id || selectedCard?.id || "";
@@ -181,7 +185,7 @@ export default function CanvasApp({ t }) {
 
   // 1. CARD BACK SECTION VIEW (Iframe embedded in Trello card back)
   if (isCardBackMode) {
-    const targetCard = selectedCard || (cards.length > 0 ? cards[0] : null);
+    const targetCard = selectedCard || resolvedCard || (cards.length > 0 && !t ? cards[0] : null);
 
     return (
       <div className="proc-cardback-wrapper">

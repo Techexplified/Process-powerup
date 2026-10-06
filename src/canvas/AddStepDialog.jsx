@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getAllAvailableMembers, getMemberById } from "../lib/processStore.js";
 import { CalendarIcon, CloseIcon } from "../lib/icons.jsx";
 
@@ -9,6 +9,25 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
   const [selectedAssignees, setSelectedAssignees] = useState([]);
   const [showMemberPicker, setShowMemberPicker] = useState(false);
   const [error, setError] = useState("");
+  const pickerRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setShowMemberPicker(false);
+      }
+    }
+
+    if (showMemberPicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [showMemberPicker]);
 
   if (!isOpen) return null;
 
@@ -115,7 +134,7 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
 
               <div className="proc-dialog-group">
                 <label className="proc-dialog-label">Tag People (Optional)</label>
-                <div className="proc-member-picker-wrap">
+                <div className="proc-member-picker-wrap" ref={pickerRef}>
                   <button
                     type="button"
                     className="proc-dialog-select-btn"
@@ -149,7 +168,7 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
                   </button>
 
                   {showMemberPicker && (
-                    <div className="proc-member-dropdown-menu custom-slim-scrollbar">
+                    <div className="proc-dialog-member-dropdown custom-slim-scrollbar">
                       {members.map((m) => {
                         const isSel = selectedAssignees.includes(m.id);
                         return (

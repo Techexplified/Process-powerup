@@ -413,23 +413,20 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
     cleanDesc = "Generated from Lean Canvas (Solution)";
   }
 
-  // 1. Try loading from Trello Power-Up card-shared storage (if in card context)
+  // 1. Try loading from Trello Power-Up card-shared storage (if in matching card context)
   if (t && typeof t.get === "function") {
     try {
       let isCardScope = false;
       if (typeof t.getContext === "function") {
         const ctx = t.getContext();
-        if (ctx && ctx.card && (!cardId || ctx.card === cardId)) {
+        if (ctx && ctx.card && ctx.card === cardId) {
           isCardScope = true;
         }
-      } else {
-        isCardScope = true;
       }
 
       if (isCardScope) {
         const trelloData = await t.get("card", "shared", "processData").catch(() => null);
         if (trelloData && trelloData.enabled !== undefined) {
-          // Enforce card isolation: if data was tagged with a cardId, ensure it matches this card
           if (!trelloData.cardId || trelloData.cardId === cardId) {
             return {
               ...trelloData,
@@ -439,9 +436,22 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
         }
       }
     } catch (e) {}
+
+    // 2. Try loading from Board-shared storage keyed by cardId (works across all board & modal contexts)
+    try {
+      const boardData = await t.get("board", "shared", `proc_${cardId}`).catch(() => null);
+      if (boardData && boardData.enabled !== undefined) {
+        if (!boardData.cardId || boardData.cardId === cardId) {
+          return {
+            ...boardData,
+            cardId: cardId,
+          };
+        }
+      }
+    } catch (e) {}
   }
 
-  // 2. Try loading from LocalStorage specifically for this cardId
+  // 3. Try loading from LocalStorage specifically for this cardId
   try {
     const saved = localStorage.getItem(`${STORAGE_KEY_PROCESS_PREFIX}${cardId}`);
     if (saved) {
@@ -485,8 +495,9 @@ export async function saveCardProcess(cardId, processData, t = null) {
     localStorage.setItem(`${STORAGE_KEY_PROCESS_PREFIX}${cardId}`, JSON.stringify(dataToSave));
   } catch (e) {}
 
-  // 2. Save to Trello Power-Up card-shared storage (only when within card scope)
+  // 2. Save to Trello Power-Up shared storage
   if (t && typeof t.set === "function") {
+    // Card-shared storage if in matching card scope
     try {
       let isCardScope = false;
       if (typeof t.getContext === "function") {
@@ -494,13 +505,15 @@ export async function saveCardProcess(cardId, processData, t = null) {
         if (ctx && ctx.card && ctx.card === cardId) {
           isCardScope = true;
         }
-      } else {
-        isCardScope = true;
       }
-
       if (isCardScope) {
         await t.set("card", "shared", "processData", dataToSave).catch(() => {});
       }
+    } catch (e) {}
+
+    // Board-shared storage keyed by cardId (guarantees cross-context synchronization)
+    try {
+      await t.set("board", "shared", `proc_${cardId}`, dataToSave).catch(() => {});
     } catch (e) {}
   }
 }

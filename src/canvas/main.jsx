@@ -8,15 +8,16 @@ try {
   if (typeof TrelloPowerUp !== "undefined" && typeof TrelloPowerUp.iframe === "function") {
     t = TrelloPowerUp.iframe();
   }
-} catch (e) {
-  console.warn("TrelloPowerUp.iframe() not available in this context:", e);
-}
+} catch (e) {}
 
 if (!t) {
   t = {
     get: () => Promise.resolve(null),
     set: () => Promise.resolve(),
     closeModal: () => {},
+    sizeTo: () => Promise.resolve(),
+    modal: () => Promise.resolve(),
+    popup: () => Promise.resolve(),
   };
 }
 

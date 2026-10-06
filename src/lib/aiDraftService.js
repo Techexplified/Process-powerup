@@ -227,7 +227,6 @@ export async function generateLeanCanvasAI(prompt, iteration = 0) {
         return cleanAndParseJSON(rawText, idea, iteration);
       }
     } catch (err) {
-      console.warn("Gemini API call warning, falling back to smart engine:", err);
       if (err.message && (err.message.includes("API key") || err.message.includes("API_KEY_INVALID"))) {
         throw err;
       }
@@ -274,9 +273,7 @@ Return ONLY a JSON object: { "items": ["fresh point 1", "fresh point 2", "fresh 
         }
         if (Array.isArray(parsed.items) && parsed.items.length > 0) return parsed.items;
       }
-    } catch (e) {
-      console.warn("Gemini single box regen error:", e);
-    }
+    } catch (e) {}
   }
 
   // Fallback dynamic single box generator cycling through variations

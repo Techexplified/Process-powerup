@@ -104,20 +104,39 @@ TrelloPowerUp.initialize({
   "card-badges": async function (t) {
     try {
       let processData = null;
+      let cardId = null;
       try {
-        processData = await t.get("card", "shared", "processData").catch(() => null);
+        const cardInfo = await t.card("id").catch(() => null);
+        if (cardInfo && cardInfo.id) {
+          cardId = cardInfo.id;
+        }
       } catch (e) {}
 
-      if (!processData && typeof window !== "undefined" && window.localStorage) {
+      if (cardId) {
         try {
-          const cardInfo = await t.card("id").catch(() => null);
-          if (cardInfo && cardInfo.id) {
-            const saved = localStorage.getItem(`process_powerup_card_${cardInfo.id}`);
-            if (saved) {
-              processData = JSON.parse(saved);
-            }
+          processData = await t.get("card", "shared", "processData").catch(() => null);
+          if (processData && processData.cardId && processData.cardId !== cardId) {
+            processData = null;
           }
-        } catch (e2) {}
+        } catch (e) {}
+
+        if (!processData) {
+          try {
+            processData = await t.get("board", "shared", `proc_${cardId}`).catch(() => null);
+          } catch (e) {}
+        }
+
+        if (!processData && typeof window !== "undefined" && window.localStorage) {
+          try {
+            const saved = localStorage.getItem(`process_powerup_card_${cardId}`);
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              if (!parsed.cardId || parsed.cardId === cardId) {
+                processData = parsed;
+              }
+            }
+          } catch (e2) {}
+        }
       }
 
       if (!processData || !processData.enabled || !Array.isArray(processData.steps) || processData.steps.length === 0) {
@@ -151,12 +170,20 @@ TrelloPowerUp.initialize({
 
   // Card Back Section: Embeds the interactive Process widget on the back of every Trello card
   "card-back-section": function (t) {
+    let cardParam = "";
+    try {
+      const ctx = typeof t.getContext === "function" ? t.getContext() : null;
+      if (ctx && ctx.card) {
+        cardParam = `&cardId=${encodeURIComponent(ctx.card)}`;
+      }
+    } catch (e) {}
+
     return {
       title: "Process Power-Up",
       icon: ICON_URL,
       content: {
         type: "iframe",
-        url: t.signUrl("./canvas.html?view=card-back-section"),
+        url: t.signUrl(`./canvas.html?view=card-back-section${cardParam}`),
         height: 220,
       },
       action: {
@@ -186,20 +213,39 @@ TrelloPowerUp.initialize({
   "card-detail-badges": async function (t) {
     try {
       let processData = null;
+      let cardId = null;
       try {
-        processData = await t.get("card", "shared", "processData").catch(() => null);
+        const cardInfo = await t.card("id").catch(() => null);
+        if (cardInfo && cardInfo.id) {
+          cardId = cardInfo.id;
+        }
       } catch (e) {}
 
-      if (!processData && typeof window !== "undefined" && window.localStorage) {
+      if (cardId) {
         try {
-          const cardInfo = await t.card("id").catch(() => null);
-          if (cardInfo && cardInfo.id) {
-            const saved = localStorage.getItem(`process_powerup_card_${cardInfo.id}`);
-            if (saved) {
-              processData = JSON.parse(saved);
-            }
+          processData = await t.get("card", "shared", "processData").catch(() => null);
+          if (processData && processData.cardId && processData.cardId !== cardId) {
+            processData = null;
           }
-        } catch (e2) {}
+        } catch (e) {}
+
+        if (!processData) {
+          try {
+            processData = await t.get("board", "shared", `proc_${cardId}`).catch(() => null);
+          } catch (e) {}
+        }
+
+        if (!processData && typeof window !== "undefined" && window.localStorage) {
+          try {
+            const saved = localStorage.getItem(`process_powerup_card_${cardId}`);
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              if (!parsed.cardId || parsed.cardId === cardId) {
+                processData = parsed;
+              }
+            }
+          } catch (e2) {}
+        }
       }
 
       if (!processData || !processData.enabled || !Array.isArray(processData.steps) || processData.steps.length === 0) {

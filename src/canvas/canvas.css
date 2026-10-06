@@ -3276,6 +3276,22 @@ html, body {
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
+.proc-dialog-member-dropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  top: auto;
+  right: 0;
+  left: auto;
+  min-width: 240px;
+  background: #182230;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  z-index: 9999;
+  max-height: 190px;
+  overflow-y: auto;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
 .proc-member-dropdown-item {
   display: flex;
   align-items: center;
