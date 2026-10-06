@@ -283,27 +283,28 @@ export async function fetchTrelloBoardData(t) {
       }
     }
 
-    // 3. Fetch Real Lists with fallbacks
+    // 3. Fetch Real Lists (with embedded cards)
     let rawLists = null;
+    let rawCards = [];
     if (typeof t.lists === "function") {
       try {
-        rawLists = await t.lists("id", "name").catch(() => null);
+        rawLists = await t.lists("id", "name", "cards").catch(() => null);
       } catch (e) {
         try {
           rawLists = await t.lists("all").catch(() => null);
-        } catch (e2) {}
+        } catch (e2) {
+          try {
+            rawLists = await t.lists("id", "name").catch(() => null);
+          } catch (e3) {}
+        }
       }
-    }
 
-    // 4. Fetch Real Cards with safe fields (never 'badges' or 'all' which triggers serializeCard attachments error)
-    let rawCards = null;
-    if (typeof t.cards === "function") {
-      try {
-        rawCards = await t.cards("id", "name", "desc", "idList", "idMembers", "labels", "due").catch(() => null);
-      } catch (e) {
-        try {
-          rawCards = await t.cards("id", "name").catch(() => null);
-        } catch (e2) {}
+      if (Array.isArray(rawLists)) {
+        rawLists.forEach((list) => {
+          if (Array.isArray(list.cards)) {
+            rawCards.push(...list.cards);
+          }
+        });
       }
     }
 
