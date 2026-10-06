@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getAllAvailableMembers } from "../lib/processStore.js";
 
 export default function HoldModal({
@@ -11,6 +11,20 @@ export default function HoldModal({
   const [reason, setReason] = useState("");
   const [selectedTaggedPeople, setSelectedTaggedPeople] = useState([]);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === "Escape" && onClose) {
+        onClose();
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen || !step) return null;
 

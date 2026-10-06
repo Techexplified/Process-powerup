@@ -11,7 +11,7 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
   const [error, setError] = useState("");
   const pickerRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside or pressing Escape
   useEffect(() => {
     function handleClickOutside(e) {
       if (pickerRef.current && !pickerRef.current.contains(e.target)) {
@@ -19,15 +19,28 @@ export default function AddStepDialog({ isOpen, onClose, onAddStep }) {
       }
     }
 
+    function handleKeyDown(e) {
+      if (e.key === "Escape") {
+        if (showMemberPicker) {
+          setShowMemberPicker(false);
+        } else if (onClose) {
+          onClose();
+        }
+      }
+    }
+
     if (showMemberPicker) {
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("touchstart", handleClickOutside);
     }
+    document.addEventListener("keydown", handleKeyDown);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [showMemberPicker]);
+  }, [showMemberPicker, onClose]);
 
   if (!isOpen) return null;
 

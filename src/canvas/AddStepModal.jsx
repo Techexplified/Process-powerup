@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getAllAvailableMembers } from "../lib/processStore.js";
 
 export default function AddStepModal({ isOpen, onClose, onAddStep }) {
@@ -7,6 +7,20 @@ export default function AddStepModal({ isOpen, onClose, onAddStep }) {
   const [targetDate, setTargetDate] = useState("");
   const [selectedAssignees, setSelectedAssignees] = useState([]);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === "Escape" && onClose) {
+        onClose();
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

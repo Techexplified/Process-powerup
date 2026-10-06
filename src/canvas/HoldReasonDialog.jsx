@@ -23,7 +23,20 @@ export default function HoldReasonDialog({
         setSelectedUnblockers([]);
       }
     }
-  }, [isOpen, step]);
+
+    function handleKeyDown(e) {
+      if (e.key === "Escape" && onClose) {
+        onClose();
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, step, onClose]);
 
   if (!isOpen || !step) return null;
 
