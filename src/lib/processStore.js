@@ -254,17 +254,14 @@ export async function fetchTrelloBoardData(t) {
     // 1. Fetch Board Info and Members via Trello client
     if (typeof t.board === "function") {
       try {
-        boardInfo = await t.board("id", "name", "members");
+        boardInfo = await t.board("id", "name", "members").catch(() => null);
         if (boardInfo && boardInfo.members) {
           membersList = boardInfo.members;
           registerDynamicMembers(membersList);
         }
       } catch (e) {
         try {
-          boardInfo = await t.board("all");
-          if (boardInfo && boardInfo.members) {
-            registerDynamicMembers(boardInfo.members);
-          }
+          boardInfo = await t.board("id", "name").catch(() => null);
         } catch (e2) {}
       }
     }
@@ -272,13 +269,13 @@ export async function fetchTrelloBoardData(t) {
     // 2. Fetch Active Member
     if (typeof t.member === "function") {
       try {
-        const activeMember = await t.member("id", "fullName", "username", "initials", "avatar");
+        const activeMember = await t.member("id", "fullName", "username", "initials", "avatar").catch(() => null);
         if (activeMember && activeMember.id) {
           registerDynamicMembers([activeMember]);
         }
       } catch (e) {
         try {
-          const activeMember = await t.member("all");
+          const activeMember = await t.member("id", "fullName").catch(() => null);
           if (activeMember && activeMember.id) {
             registerDynamicMembers([activeMember]);
           }
@@ -290,31 +287,23 @@ export async function fetchTrelloBoardData(t) {
     let rawLists = null;
     if (typeof t.lists === "function") {
       try {
-        rawLists = await t.lists("all");
+        rawLists = await t.lists("id", "name").catch(() => null);
       } catch (e) {
         try {
-          rawLists = await t.lists("id", "name");
-        } catch (e2) {
-          try {
-            rawLists = await t.lists();
-          } catch (e3) {}
-        }
+          rawLists = await t.lists("all").catch(() => null);
+        } catch (e2) {}
       }
     }
 
-    // 4. Fetch Real Cards with fallbacks
+    // 4. Fetch Real Cards with safe fields (never 'badges' or 'all' which triggers serializeCard attachments error)
     let rawCards = null;
     if (typeof t.cards === "function") {
       try {
-        rawCards = await t.cards("all");
+        rawCards = await t.cards("id", "name", "desc", "idList", "idMembers", "labels", "due").catch(() => null);
       } catch (e) {
         try {
-          rawCards = await t.cards("id", "name", "desc", "idList", "idMembers", "labels", "due", "badges");
-        } catch (e2) {
-          try {
-            rawCards = await t.cards();
-          } catch (e3) {}
-        }
+          rawCards = await t.cards("id", "name").catch(() => null);
+        } catch (e2) {}
       }
     }
 
@@ -324,7 +313,7 @@ export async function fetchTrelloBoardData(t) {
         const restLists = await apiFetch(t, `/boards/${boardInfo.id}/lists`, {
           params: {
             cards: "open",
-            card_fields: "id,name,desc,idList,idMembers,labels,due,badges",
+            card_fields: "id,name,desc,idList,idMembers,labels,due",
           },
         });
         if (Array.isArray(restLists) && restLists.length > 0) {
@@ -423,17 +412,29 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
     cleanDesc = "Generated from Lean Canvas (Solution)";
   }
 
-  // 1. Try loading from Trello Power-Up card-shared storage
+  // 1. Try loading from Trello Power-Up card-shared storage (if in card context)
   if (t && typeof t.get === "function") {
     try {
-      const trelloData = await t.get("card", "shared", "processData");
-      if (trelloData && trelloData.enabled !== undefined) {
-        // Enforce card isolation: if data was tagged with a cardId, ensure it matches this card
-        if (!trelloData.cardId || trelloData.cardId === cardId) {
-          return {
-            ...trelloData,
-            cardId: cardId,
-          };
+      let isCardScope = false;
+      if (typeof t.getContext === "function") {
+        const ctx = t.getContext();
+        if (ctx && ctx.card && (!cardId || ctx.card === cardId)) {
+          isCardScope = true;
+        }
+      } else {
+        isCardScope = true;
+      }
+
+      if (isCardScope) {
+        const trelloData = await t.get("card", "shared", "processData").catch(() => null);
+        if (trelloData && trelloData.enabled !== undefined) {
+          // Enforce card isolation: if data was tagged with a cardId, ensure it matches this card
+          if (!trelloData.cardId || trelloData.cardId === cardId) {
+            return {
+              ...trelloData,
+              cardId: cardId,
+            };
+          }
         }
       }
     } catch (e) {}
@@ -483,10 +484,22 @@ export async function saveCardProcess(cardId, processData, t = null) {
     localStorage.setItem(`${STORAGE_KEY_PROCESS_PREFIX}${cardId}`, JSON.stringify(dataToSave));
   } catch (e) {}
 
-  // 2. Save to Trello Power-Up card-shared storage
+  // 2. Save to Trello Power-Up card-shared storage (only when within card scope)
   if (t && typeof t.set === "function") {
     try {
-      await t.set("card", "shared", "processData", dataToSave);
+      let isCardScope = false;
+      if (typeof t.getContext === "function") {
+        const ctx = t.getContext();
+        if (ctx && ctx.card && ctx.card === cardId) {
+          isCardScope = true;
+        }
+      } else {
+        isCardScope = true;
+      }
+
+      if (isCardScope) {
+        await t.set("card", "shared", "processData", dataToSave).catch(() => {});
+      }
     } catch (e) {}
   }
 }

@@ -28,15 +28,11 @@ export default function CardBackSection({
         try {
           let tCard = null;
           try {
-            tCard = await t.card("all");
+            tCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due").catch(() => null);
           } catch (e1) {
             try {
-              tCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due");
-            } catch (e2) {
-              try {
-                tCard = await t.card();
-              } catch (e3) {}
-            }
+              tCard = await t.card("id", "name").catch(() => null);
+            } catch (e2) {}
           }
 
           if (tCard && tCard.id) {

@@ -81,7 +81,7 @@ TrelloPowerUp.initialize({
 
           let cardParam = "";
           try {
-            const cardInfo = await t.card("id", "name");
+            const cardInfo = await t.card("id").catch(() => null);
             if (cardInfo && cardInfo.id) {
               cardParam = `?cardId=${encodeURIComponent(cardInfo.id)}`;
             }
@@ -105,12 +105,12 @@ TrelloPowerUp.initialize({
     try {
       let processData = null;
       try {
-        processData = await t.get("card", "shared", "processData");
+        processData = await t.get("card", "shared", "processData").catch(() => null);
       } catch (e) {}
 
       if (!processData && typeof window !== "undefined" && window.localStorage) {
         try {
-          const cardInfo = await t.card("id", "name");
+          const cardInfo = await t.card("id").catch(() => null);
           if (cardInfo && cardInfo.id) {
             const saved = localStorage.getItem(`process_powerup_card_${cardInfo.id}`);
             if (saved) {
@@ -164,7 +164,7 @@ TrelloPowerUp.initialize({
         callback: async function (t) {
           let cardParam = "";
           try {
-            const cardInfo = await t.card("id", "name");
+            const cardInfo = await t.card("id").catch(() => null);
             if (cardInfo && cardInfo.id) {
               cardParam = `?cardId=${encodeURIComponent(cardInfo.id)}`;
             }
@@ -187,12 +187,12 @@ TrelloPowerUp.initialize({
     try {
       let processData = null;
       try {
-        processData = await t.get("card", "shared", "processData");
+        processData = await t.get("card", "shared", "processData").catch(() => null);
       } catch (e) {}
 
       if (!processData && typeof window !== "undefined" && window.localStorage) {
         try {
-          const cardInfo = await t.card("id", "name");
+          const cardInfo = await t.card("id").catch(() => null);
           if (cardInfo && cardInfo.id) {
             const saved = localStorage.getItem(`process_powerup_card_${cardInfo.id}`);
             if (saved) {
@@ -219,7 +219,7 @@ TrelloPowerUp.initialize({
           callback: async function (t) {
             let cardParam = "";
             try {
-              const cardInfo = await t.card("id", "name");
+              const cardInfo = await t.card("id").catch(() => null);
               if (cardInfo && cardInfo.id) {
                 cardParam = `?cardId=${encodeURIComponent(cardInfo.id)}`;
               }

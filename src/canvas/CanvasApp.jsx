@@ -39,19 +39,23 @@ export default function CanvasApp({ t }) {
         let resolvedCard = null;
 
         // 1. FIRST check if opened inside a card context (card-button or card-back-section)
-        if (typeof t.card === "function") {
+        let hasCardContext = isCardBackMode || Boolean(cardIdFromUrl);
+        try {
+          if (typeof t.getContext === "function") {
+            const ctx = t.getContext();
+            if (ctx && ctx.card) hasCardContext = true;
+          }
+        } catch (e) {}
+
+        if (hasCardContext && typeof t.card === "function") {
           try {
             let activeTrelloCard = null;
             try {
-              activeTrelloCard = await t.card("all");
+              activeTrelloCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due").catch(() => null);
             } catch (e1) {
               try {
-                activeTrelloCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due");
-              } catch (e2) {
-                try {
-                  activeTrelloCard = await t.card();
-                } catch (e3) {}
-              }
+                activeTrelloCard = await t.card("id", "name").catch(() => null);
+              } catch (e2) {}
             }
 
             if (activeTrelloCard && activeTrelloCard.id) {
