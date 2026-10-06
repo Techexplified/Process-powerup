@@ -399,7 +399,7 @@ export function saveBoardCards(cards) {
 }
 
 /**
- * Load process data for a specific card
+ * Load process data for a specific card with multi-tier timestamp synchronization
  */
 export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc = "") {
   if (!cardId) return null;
@@ -413,8 +413,12 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
     cleanDesc = "Generated from Lean Canvas (Solution)";
   }
 
-  // 1. Try loading from Trello Power-Up card-shared storage (if in matching card context)
+  let cardData = null;
+  let boardData = null;
+  let localData = null;
+
   if (t && typeof t.get === "function") {
+    // 1. Try loading from Trello Power-Up card-shared storage (if in matching card context)
     try {
       let isCardScope = false;
       if (typeof t.getContext === "function") {
@@ -425,28 +429,18 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
       }
 
       if (isCardScope) {
-        const trelloData = await t.get("card", "shared", "processData").catch(() => null);
-        if (trelloData && trelloData.enabled !== undefined) {
-          if (!trelloData.cardId || trelloData.cardId === cardId) {
-            return {
-              ...trelloData,
-              cardId: cardId,
-            };
-          }
+        const raw = await t.get("card", "shared", "processData").catch(() => null);
+        if (raw && raw.enabled !== undefined && (!raw.cardId || raw.cardId === cardId)) {
+          cardData = { ...raw, cardId };
         }
       }
     } catch (e) {}
 
-    // 2. Try loading from Board-shared storage keyed by cardId (works across all board & modal contexts)
+    // 2. Try loading from Board-shared storage keyed by cardId (contains updates made from board views or modals)
     try {
-      const boardData = await t.get("board", "shared", `proc_${cardId}`).catch(() => null);
-      if (boardData && boardData.enabled !== undefined) {
-        if (!boardData.cardId || boardData.cardId === cardId) {
-          return {
-            ...boardData,
-            cardId: cardId,
-          };
-        }
+      const raw = await t.get("board", "shared", `proc_${cardId}`).catch(() => null);
+      if (raw && raw.enabled !== undefined && (!raw.cardId || raw.cardId === cardId)) {
+        boardData = { ...raw, cardId };
       }
     } catch (e) {}
   }
@@ -456,16 +450,42 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
     const saved = localStorage.getItem(`${STORAGE_KEY_PROCESS_PREFIX}${cardId}`);
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (parsed && parsed.enabled !== undefined) {
-        if (!parsed.cardId || parsed.cardId === cardId) {
-          return {
-            ...parsed,
-            cardId: cardId,
-          };
-        }
+      if (parsed && parsed.enabled !== undefined && (!parsed.cardId || parsed.cardId === cardId)) {
+        localData = { ...parsed, cardId };
       }
     }
   } catch (e) {}
+
+  // Compare candidates to find the most recent and complete version
+  const candidates = [cardData, boardData, localData].filter(Boolean);
+  if (candidates.length > 0) {
+    candidates.sort((a, b) => {
+      const timeA = a.updatedAt || 0;
+      const timeB = b.updatedAt || 0;
+      if (timeA !== timeB) return timeB - timeA;
+      return (b.steps?.length || 0) - (a.steps?.length || 0);
+    });
+
+    const newest = candidates[0];
+
+    // If we are currently in card scope and the card-level shared storage was missing/stale, sync it forward!
+    if (t && typeof t.set === "function") {
+      try {
+        if (typeof t.getContext === "function") {
+          const ctx = t.getContext();
+          if (ctx && ctx.card && ctx.card === cardId) {
+            const cardTime = cardData?.updatedAt || 0;
+            const newestTime = newest.updatedAt || 0;
+            if (!cardData || newestTime > cardTime || (newest.steps?.length || 0) > (cardData.steps?.length || 0)) {
+              t.set("card", "shared", "processData", newest).catch(() => {});
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    return newest;
+  }
 
   // Default clean isolated process structure for THIS card (Disabled by default)
   return {
@@ -476,6 +496,7 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
     dueDate: "2026-10-12",
     status: "Draft",
     steps: [],
+    updatedAt: 0,
   };
 }
 
@@ -485,9 +506,11 @@ export async function loadCardProcess(cardId, t = null, cardTitle = "", cardDesc
 export async function saveCardProcess(cardId, processData, t = null) {
   if (!cardId) return;
 
+  const now = Date.now();
   const dataToSave = {
     ...processData,
     cardId: cardId, // Strictly associate with this exact card
+    updatedAt: now,
   };
 
   // 1. Save to LocalStorage specifically under this unique cardId
