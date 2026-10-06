@@ -51,7 +51,7 @@ export default function CanvasApp({ t }) {
           try {
             let activeTrelloCard = null;
             try {
-              activeTrelloCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due").catch(() => null);
+              activeTrelloCard = await t.card("id", "name", "desc", "idList", "members", "labels", "due").catch(() => null);
             } catch (e1) {
               try {
                 activeTrelloCard = await t.card("id", "name").catch(() => null);
@@ -64,12 +64,16 @@ export default function CanvasApp({ t }) {
                 cleanDesc = cleanDesc.split("\n").filter((l) => !l.includes("cardlytics") && !l.includes("tracked by Cardlytics")).join("\n").trim();
               }
 
+              const assignees = Array.isArray(activeTrelloCard.members)
+                ? activeTrelloCard.members.map((m) => (typeof m === "object" ? m.id : m))
+                : [];
+
               resolvedCard = {
                 id: activeTrelloCard.id,
                 listId: activeTrelloCard.idList || "list-1",
                 title: activeTrelloCard.name || "Card Workflow",
                 description: cleanDesc || "Generated from Lean Canvas (Solution)",
-                assignees: activeTrelloCard.idMembers || [],
+                assignees: assignees,
                 labels: (activeTrelloCard.labels || []).map((l) => ({ name: l.name || l.color, color: l.color })),
                 due: activeTrelloCard.due,
               };

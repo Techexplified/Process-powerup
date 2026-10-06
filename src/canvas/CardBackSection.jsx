@@ -28,7 +28,7 @@ export default function CardBackSection({
         try {
           let tCard = null;
           try {
-            tCard = await t.card("id", "name", "desc", "idList", "idMembers", "labels", "due").catch(() => null);
+            tCard = await t.card("id", "name", "desc", "idList", "members", "labels", "due").catch(() => null);
           } catch (e1) {
             try {
               tCard = await t.card("id", "name").catch(() => null);
@@ -40,12 +40,15 @@ export default function CardBackSection({
             if (cleanDesc.includes("cardlytics:") || cleanDesc.includes("tracked by Cardlytics")) {
               cleanDesc = cleanDesc.split("\n").filter((l) => !l.includes("cardlytics") && !l.includes("tracked by Cardlytics")).join("\n").trim();
             }
+            const assignees = Array.isArray(tCard.members)
+              ? tCard.members.map((m) => (typeof m === "object" ? m.id : m))
+              : [];
             resolvedCard = {
               id: tCard.id,
               listId: tCard.idList || "list-1",
               title: tCard.name || "Card Workflow",
               description: cleanDesc || "Generated from Lean Canvas (Solution)",
-              assignees: tCard.idMembers || [],
+              assignees: assignees,
               labels: (tCard.labels || []).map((l) => ({ name: l.name || l.color, color: l.color })),
               due: tCard.due,
             };
